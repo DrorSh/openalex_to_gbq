@@ -2,17 +2,11 @@ import chalk from "chalk";
 import fileSystem from "fs";
 import ndjson from "ndjson";
 import zlib from "zlib";
+import JSON from "JSON";
+import util from "util";
+import stream from "stream";
 
-const inPath = '/proj/data/raw/';
-const outPath = '/proj/data/converted/';
 
-// create the i/o streams
-
-var inputStream = fileSystem.createReadStream( inPath + "0000_part_00.gz" ).pipe(zlib.createGunzip());
-var transformInStream = inputStream.pipe( ndjson.parse() );
-
-var transformOutStream = ndjson.stringify();
-var outputStream = transformOutStream.pipe( fileSystem.createWriteStream( outPath + "/works.ndjson" ) );
 
 // fix stuff
 // ----------
@@ -115,12 +109,32 @@ function fix_concepts(concepts) {
 
 // #################################################
 
-// Transform the input stream
-transformInStream
-			// Each "data" event will emit one item from our original record-set.
+function fixRecord(data) {
+
+}
+
+async function fixFile(inPath, outPath, file) {
+	console.log(inPath+file)
+
+	var pipeline = util.promisify(stream.pipeline);
+    var inputStream = fileSystem.createReadStream( inPath+file );
+    var outputStream = fileSystem.createWriteStream( outPath + file );
+
+    var transformOutStream = ndjson.stringify();
+    
+    var gunzip = zlib.createGunzip();
+    var gzip = zlib.createGzip();
+
+    let count = 0;
+
+    var transformInStream = ndjson.parse()
+			
 			.on(
 				"data",
+
 				function handleRecord( data ) {
+
+                    ++count % 100000 || console.log(count);
 
 					data.authorships = fix_authorships(data.authorships);
 					data.host_venue = fix_host_venue(data.host_venue);
@@ -129,32 +143,50 @@ transformInStream
 					data.alternate_host_venues = fix_alternate_host_venues(data.alternate_host_venues);
 					data.concepts = fix_concepts(data.concepts);
 
-					delete data.abstract_inverted_index;
-
-					console.log( chalk.red( "Record:" ), data.id );
-					transformOutStream.write(data);
-
+					data.abstract_inverted_index = JSON.stringify(data.abstract_inverted_index);
+					
 				}
 			)
-
-			// Once ndjson has parsed all the input, let's indicate done.
 			.on(
 				"end",
 				function handleEnd() {
 
 					console.log( chalk.green( "ndjson parsing complete!" ) );
-					transformOutStream.end();
+		
 
 				}
 			)
 		;
 
+    await pipeline(
+        inputStream,
+        gunzip,
+        transformInStream,
+        transformOutStream,
+        gzip,
+        outputStream
+    );
+}
 
-outputStream.on(
-	"finish",
-	function handleFinish() {
 
-		console.log( chalk.green( "ndjson file saved!" ) );
+async function start(inPath, outPath, files) {
+    for(let i=0; i< files.length; i++){
+        await fixFile(inPath, outPath, files[i]);
+      }
+}
 
-	}
-);
+
+// RUN
+// -----
+
+
+const EXTENSION = '.gz';
+
+const FOLDER = '<FOLDER>'; //folder for conversion
+
+const inPath = '/proj/data/raw/' + FOLDER;
+const outPath = '/proj/data/converted/' + FOLDER;
+
+var files = fileSystem.readdirSync(inPath);
+
+start(inPath, outPath, files);
