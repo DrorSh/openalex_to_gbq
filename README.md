@@ -19,7 +19,11 @@ docker build -t node .
 winpty docker run --name node -v /$PWD/proj:/proj --rm -ti node sh
 ```
 
-3. In each of the scripts provided, edit the `FOLDER` to correspond to the desired source and run the script from the container
+3. Convert files
+
+In each of the scripts provided, edit the `FOLDER` to correspond to the desired source and run the script from the container
+
+Note: `venues` and `authors` do not require convertion and can be uploaded as is. 
 
 ```
 node run_works
