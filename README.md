@@ -12,7 +12,7 @@ This repo provides dockerized node.js scripts and instructions to convert and up
 aws s3 sync 's3://openalex' 'openalex-snapshot' --no-sign-request
 ```
 
-2. Build Docker image 
+2. Build Docker image and start a container
 
 ```
 docker build -t node .
