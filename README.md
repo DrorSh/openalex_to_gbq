@@ -8,14 +8,25 @@ This repo provides node.js scripts and instructions to convert and upload the da
 
 ## Instructions
 
-1. Set up the environment with pixi
+1. Configure settings
+
+Copy `.env.example` to `.env` and fill in your values:
+
+```
+VERSION="20260210"          # Table version suffix (yyyymmdd)
+PROJECT_ID="your-project-id"
+GCS_BUCKET="your-bucket-name"
+BQ_DATASET="openalex"
+```
+
+2. Set up the environment with pixi
 
 ```
 pixi install
 pixi run install
 ```
 
-2. Download data from AWS
+3. Download data from AWS
 
 Download one or more datasets using the `download` task. Available datasets: `works`, `concepts`, `institutions`, `authors`, `venues`.
 
@@ -25,7 +36,7 @@ pixi run download works authors
 pixi run download all        # download everything
 ```
 
-3. Convert files
+4. Convert files
 
 Note: `venues` and `authors` do not require conversion and can be uploaded as is.
 
@@ -33,17 +44,6 @@ Note: `venues` and `authors` do not require conversion and can be uploaded as is
 pixi run convert works
 pixi run convert works concepts
 pixi run convert all         # convert everything
-```
-
-4. Configure upload settings
-
-Copy `.env.example` to `.env` and fill in your values:
-
-```
-VERSION="20260210"          # Table version suffix (yyyymmdd)
-PROJECT_ID="your-project-id"
-GCS_BUCKET="your-bucket-name"
-BQ_DATASET="openalex"
 ```
 
 5. Upload to GCS and load into BigQuery
