@@ -65,9 +65,15 @@ for ds in "${selected[@]}"; do
 
     echo "=== ${ds} ==="
 
-    # Upload converted data to GCS
-    echo "Uploading to ${GCS_PATH} ..."
-    gsutil -m cp -r "data/converted/${VERSION}/${ds}/"* "${GCS_PATH}"
+    # Authors and venues don't need conversion — upload from raw
+    if [ "$ds" = "authors" ] || [ "$ds" = "venues" ]; then
+        SRC_DIR="data/raw/${VERSION}/${ds}"
+    else
+        SRC_DIR="data/converted/${VERSION}/${ds}"
+    fi
+
+    echo "Uploading ${SRC_DIR} to ${GCS_PATH} ..."
+    gsutil -m cp -r "${SRC_DIR}/"* "${GCS_PATH}"
 
     # Find schema file (prefer oa_2023, fall back to oa_2022)
     SCHEMA=""
