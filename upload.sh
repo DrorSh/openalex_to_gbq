@@ -61,13 +61,13 @@ fi
 
 for ds in "${selected[@]}"; do
     TABLE="${ds}_${VERSION}"
-    GCS_PATH="gs://${GCS_BUCKET}/${ds}/"
+    GCS_PATH="gs://${GCS_BUCKET}/${VERSION}/${ds}/"
 
     echo "=== ${ds} ==="
 
     # Upload converted data to GCS
     echo "Uploading to ${GCS_PATH} ..."
-    gsutil -m cp -r "data/converted/${ds}/"* "${GCS_PATH}"
+    gsutil -m cp -r "data/converted/${VERSION}/${ds}/"* "${GCS_PATH}"
 
     # Find schema file (prefer oa_2023, fall back to oa_2022)
     SCHEMA=""

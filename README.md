@@ -2,6 +2,8 @@
 
 OpenAlex data require some modifications before it can be uploaded as columnar data to BQ. Namely, all hyphens in tag names need to be removed and missing arrays should be added. 
 
+The source data is hosted on AWS at https://openalex.s3.amazonaws.com/.
+
 This repo provides node.js scripts and instructions to convert and upload the data. It uses [pixi](https://pixi.sh) for reproducible environment management.
 
 ## Instructions

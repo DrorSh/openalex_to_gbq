@@ -1,8 +1,20 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+# Load configuration
+if [ ! -f .env ]; then
+    echo "Error: .env file not found. Copy .env.example to .env and fill in your values."
+    exit 1
+fi
+source .env
+
+if [ -z "${VERSION:-}" ]; then
+    echo "Error: VERSION is not set in .env"
+    exit 1
+fi
+
 DATASETS=(works concepts institutions authors venues)
-DEST_DIR="data/raw"
+DEST_DIR="data/raw/${VERSION}"
 
 usage() {
     echo "Usage: bash download.sh <dataset> [dataset ...]"

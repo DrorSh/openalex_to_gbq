@@ -111,10 +111,13 @@ async function start(inPath, outPath, files) {
 
 const EXTENSION = '.gz';
 
+const VERSION = process.env.DATA_VERSION;
+if (!VERSION) { console.error("Error: DATA_VERSION env var not set"); process.exit(1); }
+
 const FOLDER = '<FOLDER>'; // manually change to folder you wish to convert
 
-const inPath = './data/raw/' + FOLDER;
-const outPath = './data/converted/' + FOLDER;
+const inPath = `./data/raw/${VERSION}/` + FOLDER;
+const outPath = `./data/converted/${VERSION}/` + FOLDER;
 
 var files = fileSystem.readdirSync(inPath);
 

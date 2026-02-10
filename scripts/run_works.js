@@ -351,8 +351,11 @@ async function start(inPath, outPath, files) {
 //const fs = require('fs');
 //const path = require('path');
 
-const BASE_PATH = './data/raw/works/';
-const CONVERTED_PATH = './data/converted/works/';
+const VERSION = process.env.DATA_VERSION;
+if (!VERSION) { console.error("Error: DATA_VERSION env var not set"); process.exit(1); }
+
+const BASE_PATH = `./data/raw/${VERSION}/works/`;
+const CONVERTED_PATH = `./data/converted/${VERSION}/works/`;
 
 // Get all folders under 'works'
 const folders = fs.readdirSync(BASE_PATH, { withFileTypes: true })
