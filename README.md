@@ -6,6 +6,21 @@ The source data is hosted on AWS at https://openalex.s3.amazonaws.com/.
 
 This repo provides node.js scripts and instructions to convert and upload the data. It uses [pixi](https://pixi.sh) for reproducible environment management.
 
+## Available datasets
+
+- authors
+- awards
+- concepts
+- domains
+- fields
+- funders
+- institutions
+- publishers
+- sources
+- subfields
+- topics
+- works
+
 ## Instructions
 
 1. Configure settings
@@ -23,12 +38,12 @@ BQ_DATASET="openalex"
 
 ```
 pixi install
-pixi run install
+pixi run setup
 ```
 
 3. Download data from AWS
 
-Download one or more datasets using the `download` task. Available datasets: `works`, `concepts`, `institutions`, `authors`, `venues`.
+Download one or more datasets using the `download` task (see list above).
 
 ```
 pixi run download works
@@ -36,7 +51,16 @@ pixi run download works authors
 pixi run download all        # download everything
 ```
 
-4. Convert files
+4. Generate schemas
+
+Uses [bigquery-schema-generator](https://github.com/bxparks/bigquery-schema-generator) to generate BQ schemas from the downloaded data.
+
+```
+pixi run schema authors
+pixi run schema all          # generate all schemas
+```
+
+5. Convert files
 
 Note: `venues` and `authors` do not require conversion and can be uploaded as is.
 
@@ -46,7 +70,7 @@ pixi run convert works concepts
 pixi run convert all         # convert everything
 ```
 
-5. Upload to GCS
+6. Upload to GCS
 
 ```
 pixi run upload works
@@ -54,14 +78,28 @@ pixi run upload works concepts
 pixi run upload all          # upload everything
 ```
 
-6. Load into BigQuery
+7. Load into BigQuery
 
 Creates tables with versioned names (e.g. `works_20260210`).
 
 ```
-pixi run bq-load works
-pixi run bq-load works concepts
-pixi run bq-load all         # load everything
+pixi run bq works
+pixi run bq works concepts
+pixi run bq all              # load everything
+```
+
+8. Cleanup
+
+Remove local data files for the current version:
+
+```
+pixi run cleanup
+```
+
+Move GCS files to archive storage class:
+
+```
+pixi run gcs-archive
 ```
 
 ## Notes

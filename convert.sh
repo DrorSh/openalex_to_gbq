@@ -13,6 +13,7 @@ if [ -z "${VERSION:-}" ]; then
     exit 1
 fi
 
+# Only datasets that have conversion scripts in scripts/
 DATASETS=(works concepts institutions)
 
 usage() {

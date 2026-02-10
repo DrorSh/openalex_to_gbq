@@ -8,7 +8,7 @@ if [ ! -f .env ]; then
 fi
 source .env
 
-DATASETS=(works concepts institutions authors venues)
+DATASETS=(authors awards concepts domains fields funders institutions publishers sources subfields topics works)
 
 usage() {
     echo "Usage: bash upload.sh <dataset> [dataset ...]"
@@ -60,15 +60,16 @@ fi
 for ds in "${selected[@]}"; do
     GCS_PATH="gs://${GCS_BUCKET}/${VERSION}/${ds}/"
 
-    # Authors and venues don't need conversion — upload from raw
-    if [ "$ds" = "authors" ] || [ "$ds" = "venues" ]; then
-        SRC_DIR="data/raw/${VERSION}/${ds}"
+    # Only works/concepts/institutions have conversion scripts; rest upload from raw
+    CONVERTED_DIR="data/converted/${VERSION}/${ds}"
+    if [ -d "$CONVERTED_DIR" ]; then
+        SRC_DIR="$CONVERTED_DIR"
     else
-        SRC_DIR="data/converted/${VERSION}/${ds}"
+        SRC_DIR="data/raw/${VERSION}/${ds}"
     fi
 
     echo "Uploading ${SRC_DIR} to ${GCS_PATH} ..."
-    gsutil -m cp -r "${SRC_DIR}/"* "${GCS_PATH}"
+    gsutil -m cp -r -x 'manifest$' "${SRC_DIR}/"* "${GCS_PATH}"
 done
 
 echo "Done."

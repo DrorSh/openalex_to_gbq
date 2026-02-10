@@ -6,10 +6,14 @@ platforms = ["linux-64", "osx-64", "osx-arm64", "win-64"]
 [dependencies]
 nodejs = ">=18"
 awscli = "*"
+pip = "*"
 
 [tasks]
+setup = "pip install bigquery-schema-generator && npm install"
 download = "bash download.sh"
-install = "npm install"
 convert = "bash convert.sh"
+schema = "bash schema.sh"
 upload = "bash upload.sh"
-bq-load = "bash bq_load.sh"
+bq = "bash bq.sh"
+cleanup = "bash cleanup.sh"
+gcs-archive = "bash gcs-archive.sh"

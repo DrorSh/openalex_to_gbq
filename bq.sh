@@ -1,0 +1,101 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# Load configuration
+if [ ! -f .env ]; then
+    echo "Error: .env file not found. Copy .env.example to .env and fill in your values."
+    exit 1
+fi
+source .env
+
+DATASETS=(authors awards concepts domains fields funders institutions publishers sources subfields topics works)
+
+usage() {
+    echo "Usage: bash bq.sh <dataset> [dataset ...]"
+    echo ""
+    echo "Creates BigQuery tables from GCS data."
+    echo "Tables are named <dataset>_<VERSION> (e.g. works_${VERSION})."
+    echo ""
+    echo "Available datasets: ${DATASETS[*]}"
+    echo "Use 'all' to load everything."
+    echo ""
+    echo "Examples:"
+    echo "  bash bq.sh works"
+    echo "  bash bq.sh works concepts"
+    echo "  bash bq.sh all"
+    exit 1
+}
+
+if [ $# -eq 0 ]; then
+    usage
+fi
+
+for var in VERSION PROJECT_ID GCS_BUCKET BQ_DATASET; do
+    if [ -z "${!var:-}" ]; then
+        echo "Error: $var is not set in .env"
+        exit 1
+    fi
+done
+
+# Resolve dataset list
+if [ "$1" = "all" ]; then
+    selected=("${DATASETS[@]}")
+else
+    selected=("$@")
+    for ds in "${selected[@]}"; do
+        valid=false
+        for known in "${DATASETS[@]}"; do
+            if [ "$ds" = "$known" ]; then
+                valid=true
+                break
+            fi
+        done
+        if [ "$valid" = false ]; then
+            echo "Error: unknown dataset '$ds'"
+            echo "Available datasets: ${DATASETS[*]}"
+            exit 1
+        fi
+    done
+fi
+
+for ds in "${selected[@]}"; do
+    TABLE="${ds}_${VERSION}"
+    GCS_PATH="gs://${GCS_BUCKET}/${VERSION}/${ds}/"
+
+    # Find schema file: try exact version first, then most recent available
+    SCHEMA=""
+    # Build list: exact version first, then all schema dirs sorted descending
+    SCHEMA_DIRS=("schemas/${VERSION}")
+    for d in $(ls -d schemas/*/ 2>/dev/null | sort -r); do
+        dir="${d%/}"
+        if [ "$dir" != "schemas/${VERSION}" ]; then
+            SCHEMA_DIRS+=("$dir")
+        fi
+    done
+    for schema_dir in "${SCHEMA_DIRS[@]}"; do
+        for f in "${schema_dir}/${ds}.schema.json" "${schema_dir}/${ds}_schema.json"; do
+            if [ -f "$f" ]; then
+                SCHEMA="$f"
+                break 2
+            fi
+        done
+    done
+
+    if [ -z "$SCHEMA" ]; then
+        echo "Warning: no schema found for ${ds}, skipping"
+        continue
+    fi
+
+    echo "Loading ${BQ_DATASET}.${TABLE} from ${GCS_PATH} (schema: ${SCHEMA}) ..."
+    bq load \
+        --source_format=NEWLINE_DELIMITED_JSON \
+        --project_id="${PROJECT_ID}" \
+        --replace=true \
+        "${BQ_DATASET}.${TABLE}" \
+        "${GCS_PATH}*.gz" \
+        "${SCHEMA}"
+
+    echo "${ds} done."
+done
+
+echo "Done."

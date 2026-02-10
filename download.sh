@@ -13,7 +13,7 @@ if [ -z "${VERSION:-}" ]; then
     exit 1
 fi
 
-DATASETS=(works concepts institutions authors venues)
+DATASETS=(authors awards concepts domains fields funders institutions publishers sources subfields topics works)
 DEST_DIR="data/raw/${VERSION}"
 
 usage() {
