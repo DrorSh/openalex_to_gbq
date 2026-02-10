@@ -1,0 +1,142 @@
+[
+  {
+    "mode": "NULLABLE",
+    "name": "cited_by_count",
+    "type": "INTEGER"
+  },
+  {
+    "mode": "NULLABLE",
+    "name": "created_date",
+    "type": "TIMESTAMP"
+  },
+  {
+    "mode": "NULLABLE",
+    "name": "description",
+    "type": "STRING"
+  },
+  {
+    "mode": "NULLABLE",
+    "name": "display_name",
+    "type": "STRING"
+  },
+  {
+    "mode": "REPEATED",
+    "name": "display_name_alternatives",
+    "type": "STRING"
+  },
+  {
+    "fields": [
+      {
+        "mode": "NULLABLE",
+        "name": "display_name",
+        "type": "STRING"
+      },
+      {
+        "mode": "NULLABLE",
+        "name": "id",
+        "type": "STRING"
+      }
+    ],
+    "mode": "NULLABLE",
+    "name": "domain",
+    "type": "RECORD"
+  },
+  {
+    "fields": [
+      {
+        "mode": "NULLABLE",
+        "name": "display_name",
+        "type": "STRING"
+      },
+      {
+        "mode": "NULLABLE",
+        "name": "id",
+        "type": "STRING"
+      }
+    ],
+    "mode": "NULLABLE",
+    "name": "field",
+    "type": "RECORD"
+  },
+  {
+    "mode": "NULLABLE",
+    "name": "id",
+    "type": "STRING"
+  },
+  {
+    "fields": [
+      {
+        "mode": "NULLABLE",
+        "name": "openalex",
+        "type": "STRING"
+      },
+      {
+        "mode": "NULLABLE",
+        "name": "wikidata",
+        "type": "STRING"
+      },
+      {
+        "mode": "NULLABLE",
+        "name": "wikipedia",
+        "type": "STRING"
+      }
+    ],
+    "mode": "NULLABLE",
+    "name": "ids",
+    "type": "RECORD"
+  },
+  {
+    "mode": "NULLABLE",
+    "name": "original_id",
+    "type": "INTEGER"
+  },
+  {
+    "fields": [
+      {
+        "mode": "NULLABLE",
+        "name": "display_name",
+        "type": "STRING"
+      },
+      {
+        "mode": "NULLABLE",
+        "name": "id",
+        "type": "STRING"
+      }
+    ],
+    "mode": "REPEATED",
+    "name": "siblings",
+    "type": "RECORD"
+  },
+  {
+    "fields": [
+      {
+        "mode": "NULLABLE",
+        "name": "display_name",
+        "type": "STRING"
+      },
+      {
+        "mode": "NULLABLE",
+        "name": "id",
+        "type": "STRING"
+      }
+    ],
+    "mode": "REPEATED",
+    "name": "topics",
+    "type": "RECORD"
+  },
+  {
+    "mode": "NULLABLE",
+    "name": "updated_date",
+    "type": "TIMESTAMP"
+  },
+  {
+    "mode": "NULLABLE",
+    "name": "works_api_url",
+    "type": "STRING"
+  },
+  {
+    "mode": "NULLABLE",
+    "name": "works_count",
+    "type": "INTEGER"
+  }
+]

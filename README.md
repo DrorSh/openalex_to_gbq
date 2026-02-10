@@ -62,12 +62,12 @@ pixi run schema all          # generate all schemas
 
 5. Convert files
 
-Note: `venues` and `authors` do not require conversion and can be uploaded as is.
+Only `works`, `concepts`, `institutions`, and `sources` require conversion (hyphen removal, fixing null arrays). All other datasets can be uploaded as-is.
 
 ```
 pixi run convert works
 pixi run convert works concepts
-pixi run convert all         # convert everything
+pixi run convert all         # convert works, concepts, institutions
 ```
 
 6. Upload to GCS

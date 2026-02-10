@@ -14,7 +14,7 @@ if [ -z "${VERSION:-}" ]; then
 fi
 
 # Only datasets that have conversion scripts in scripts/
-DATASETS=(works concepts institutions)
+DATASETS=(works concepts institutions sources)
 
 usage() {
     echo "Usage: bash convert.sh <dataset> [dataset ...]"
@@ -58,7 +58,14 @@ fi
 
 for ds in "${selected[@]}"; do
     echo "Converting $ds ..."
-    DATA_VERSION="$VERSION" node "scripts/run_${ds}.js"
+    if [ -f "scripts/run_${ds}.js" ]; then
+        DATA_VERSION="$VERSION" node "scripts/run_${ds}.js"
+    elif [ -f "scripts/run_${ds}.py" ]; then
+        DATA_VERSION="$VERSION" python3 "scripts/run_${ds}.py"
+    else
+        echo "Error: no conversion script found for ${ds}"
+        exit 1
+    fi
 done
 
 echo "Done."

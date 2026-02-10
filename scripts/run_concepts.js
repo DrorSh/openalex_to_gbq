@@ -1,5 +1,7 @@
 import chalk from "chalk";
 import fileSystem from "fs";
+import fs from "fs";
+import path from "path";
 import ndjson from "ndjson";
 import zlib from "zlib";
 import JSON from "JSON";
@@ -50,11 +52,11 @@ function fixRecord(data) {
 }
 
 async function fixFile(inPath, outPath, file) {
-	console.log(inPath+file)
+	console.log(inPath+"/"+file)
 
 	var pipeline = util.promisify(stream.pipeline);
-    var inputStream = fileSystem.createReadStream( inPath+file );
-    var outputStream = fileSystem.createWriteStream( outPath + file );
+    var inputStream = fileSystem.createReadStream( inPath+"/"+file );
+    var outputStream = fileSystem.createWriteStream( outPath+"/"+file );
 
     var transformOutStream = ndjson.stringify();
     
@@ -109,16 +111,24 @@ async function start(inPath, outPath, files) {
 // -----
 
 
-const EXTENSION = '.gz';
-
 const VERSION = process.env.DATA_VERSION;
 if (!VERSION) { console.error("Error: DATA_VERSION env var not set"); process.exit(1); }
 
-const FOLDER = '<FOLDER>'; // manually change to folder you wish to convert
+const BASE_PATH = `./data/raw/${VERSION}/concepts/`;
+const CONVERTED_PATH = `./data/converted/${VERSION}/concepts/`;
 
-const inPath = `./data/raw/${VERSION}/` + FOLDER;
-const outPath = `./data/converted/${VERSION}/` + FOLDER;
+const folders = fs.readdirSync(BASE_PATH, { withFileTypes: true })
+    .filter(dirent => dirent.isDirectory())
+    .map(dirent => dirent.name);
 
-var files = fileSystem.readdirSync(inPath);
+folders.forEach(folder => {
+    const inFolderPath = path.join(BASE_PATH, folder);
+    const outFolderPath = path.join(CONVERTED_PATH, folder);
 
-start(inPath, outPath, files);
+    if (!fs.existsSync(outFolderPath)) {
+        fs.mkdirSync(outFolderPath, { recursive: true });
+    }
+
+    const files = fs.readdirSync(inFolderPath);
+    start(inFolderPath, outFolderPath, files);
+});

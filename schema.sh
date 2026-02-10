@@ -65,13 +65,18 @@ fi
 mkdir -p "$SCHEMA_DIR"
 
 for ds in "${selected[@]}"; do
+    # Use converted data if available, otherwise raw
+    CONVERTED_DIR="data/converted/${VERSION}/${ds}"
     RAW_DIR="data/raw/${VERSION}/${ds}"
-    SCHEMA_FILE="${SCHEMA_DIR}/${ds}.schema.json"
-
-    if [ ! -d "$RAW_DIR" ]; then
-        echo "Warning: ${RAW_DIR} not found, skipping ${ds}"
+    if [ -d "$CONVERTED_DIR" ]; then
+        DATA_DIR="$CONVERTED_DIR"
+    elif [ -d "$RAW_DIR" ]; then
+        DATA_DIR="$RAW_DIR"
+    else
+        echo "Warning: no data found for ${ds}, skipping"
         continue
     fi
+    SCHEMA_FILE="${SCHEMA_DIR}/${ds}.schema.json"
 
     echo "Generating schema for ${ds} ..."
 
@@ -92,12 +97,12 @@ for path in files:
         for i, line in enumerate(f):
             if i >= 100: break
             sys.stdout.write(line)
-" "$RAW_DIR" > "$TMPFILE"
+" "$DATA_DIR" > "$TMPFILE"
 
     LINES=$(wc -l < "$TMPFILE")
     echo "  Sampled ${LINES} records total"
 
-    generate-schema < "$TMPFILE" > "$SCHEMA_FILE"
+    generate-schema --keep_nulls --ignore_invalid_lines < "$TMPFILE" > "$SCHEMA_FILE"
     rm -f "$TMPFILE"
 
     echo "  Saved to ${SCHEMA_FILE}"
