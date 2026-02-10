@@ -1,1 +1,1 @@
-{"type":"module","dependencies":{"chalk":"^5.0.1","cli-progress":"^3.10.0","JSON":"^1.0.0","lodash":"^4.17.21","ndjson":"^2.0.0","recursive-key-replace":"^1.0.0"}}
+{"type":"module","dependencies":{"chalk":"^5.0.1","cli-progress":"^3.10.0","JSON":"^1.0.0","lodash":"^4.17.23","ndjson":"^2.0.0","recursive-key-replace":"^1.0.0"}}
