@@ -1,0 +1,16 @@
+[workspace]
+name = "openalex_to_gbq"
+channels = ["conda-forge"]
+platforms = ["linux-64", "osx-64", "osx-arm64", "win-64"]
+
+[dependencies]
+nodejs = ">=18"
+awscli = "*"
+
+[tasks]
+download = "bash download.sh"
+install = "npm install"
+run-works = "node scripts/run_works.js"
+run-concepts = "node scripts/run_concepts.js"
+run-institutions = "node scripts/run_institutions.js"
+upload = "bash upload.sh"

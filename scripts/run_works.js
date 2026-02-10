@@ -343,16 +343,16 @@ async function start(inPath, outPath, files) {
 
 //const EXTENSION = '.gz';
 //const FOLDER = 'works/updated_date=2023-07-07/'; //folder for conversion
-//const inPath = '/proj/data/raw/' + FOLDER;
-//const outPath = '/proj/data/converted/' + FOLDER;
+//const inPath = './data/raw/' + FOLDER;
+//const outPath = './data/converted/' + FOLDER;
 //var files = fileSystem.readdirSync(inPath);
 //start(inPath, outPath, files);
 
 //const fs = require('fs');
 //const path = require('path');
 
-const BASE_PATH = '/proj/data/raw/works/';
-const CONVERTED_PATH = '/proj/data/converted/works/';
+const BASE_PATH = './data/raw/works/';
+const CONVERTED_PATH = './data/converted/works/';
 
 // Get all folders under 'works'
 const folders = fs.readdirSync(BASE_PATH, { withFileTypes: true })

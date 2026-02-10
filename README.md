@@ -2,47 +2,60 @@
 
 OpenAlex data require some modifications before it can be uploaded as columnar data to BQ. Namely, all hyphens in tag names need to be removed and missing arrays should be added. 
 
-This repo provides dockerized node.js scripts and instructions to convert and upload the data.
+This repo provides node.js scripts and instructions to convert and upload the data. It uses [pixi](https://pixi.sh) for reproducible environment management.
 
 ## Instructions
 
-1. Download the data from `AWS`. Follow isntructions on https://docs.openalex.org/download-snapshot/download-to-your-machine
+1. Set up the environment with pixi
 
 ```
-aws s3 sync 's3://openalex' 'openalex-snapshot' --no-sign-request
+pixi install
+pixi run install
 ```
 
-2. Build Docker image and start a container
+2. Download data from AWS
+
+Download one or more datasets using the `download` task. Available datasets: `works`, `concepts`, `institutions`, `authors`, `venues`.
 
 ```
-docker build -t node .
-winpty docker run --name node -v /$PWD/proj:/proj --rm -ti node sh
+pixi run download works
+pixi run download works authors
+pixi run download all        # download everything
 ```
 
 3. Convert files
 
-In each of the scripts provided, edit the `FOLDER` to correspond to the desired source and run the script from the container
+In each of the scripts provided, edit the `FOLDER` to correspond to the desired source and run the script:
 
-Note: `venues` and `authors` do not require convertion and can be uploaded as is. 
+Note: `venues` and `authors` do not require convertion and can be uploaded as is.
 
 ```
-node run_works
+pixi run run-works
+pixi run run-concepts
+pixi run run-institutions
 ```
 
 For the larger parts of the data this process takes several hours. (TODO: cycle through folders)
 
-4. Copy files to google cloud storage
+4. Configure upload settings
+
+Copy `.env.example` to `.env` and fill in your values:
 
 ```
-gsutil -m cp -r . gs://my-bucket/dest
+VERSION="20260210"          # Table version suffix (yyyymmdd)
+PROJECT_ID="your-project-id"
+GCS_BUCKET="your-bucket-name"
+BQ_DATASET="openalex"
 ```
 
-5. Create the bigquery table
+5. Upload to GCS and load into BigQuery
 
-Use provided schema files (no need to upload to GCS)
+Tables are created with versioned names (e.g. `works_20260210`).
 
 ```
-bq load --source_format=NEWLINE_DELIMITED_JSON -project_id=<PROJID> --replace=true openalex.<TABLE> gs://my-bucket/dest* <LOCAL SCHEMA>
+pixi run upload works
+pixi run upload works concepts
+pixi run upload all          # upload everything
 ```
 
 ## Notes

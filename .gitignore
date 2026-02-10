@@ -1,2 +1,4 @@
-/proj/data
-/proj/node_modules
+/data
+/node_modules
+.pixi/
+.env

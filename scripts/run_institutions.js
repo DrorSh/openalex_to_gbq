@@ -2,7 +2,6 @@ import chalk from "chalk";
 import fileSystem from "fs";
 import ndjson from "ndjson";
 import zlib from "zlib";
-import JSON from "JSON";
 import util from "util";
 import stream from "stream";
 import _ from "lodash";
@@ -64,24 +63,30 @@ async function fixFile(inPath, outPath, file) {
     let count = 0;
 
     var transformInStream = ndjson.parse()
+			// Each "data" event will emit one item from our original record-set.
 			.on(
 				"data",
 
 				function handleRecord( data ) {
+
                     ++count % 100000 || console.log(count);
 
 					data = fixHyphen(data);
                     
-                    delete data.international; //TODO
+                    delete data.international;
 
+					//console.log( chalk.red( "Record:" ), data.id );
+					
 				}
 			)
 
+			// Once ndjson has parsed all the input, let's indicate done.
 			.on(
 				"end",
 				function handleEnd() {
 
 					console.log( chalk.green( "ndjson parsing complete!" ) );
+					//transformOutStream.end();
 
 				}
 			)
@@ -111,10 +116,10 @@ async function start(inPath, outPath, files) {
 
 const EXTENSION = '.gz';
 
-const FOLDER = '<FOLDER>'; // manually change to folder you wish to convert
+const FOLDER = '<FOLDER>'; // Folder for conversion
 
-const inPath = '/proj/data/raw/' + FOLDER;
-const outPath = '/proj/data/converted/' + FOLDER;
+const inPath = './data/raw/institutions/' + FOLDER;
+const outPath = './data/converted/institutions/' + FOLDER;
 
 var files = fileSystem.readdirSync(inPath);
 
