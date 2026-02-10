@@ -27,17 +27,13 @@ pixi run download all        # download everything
 
 3. Convert files
 
-In each of the scripts provided, edit the `FOLDER` to correspond to the desired source and run the script:
-
-Note: `venues` and `authors` do not require convertion and can be uploaded as is.
+Note: `venues` and `authors` do not require conversion and can be uploaded as is.
 
 ```
-pixi run run-works
-pixi run run-concepts
-pixi run run-institutions
+pixi run convert works
+pixi run convert works concepts
+pixi run convert all         # convert everything
 ```
-
-For the larger parts of the data this process takes several hours. (TODO: cycle through folders)
 
 4. Configure upload settings
 

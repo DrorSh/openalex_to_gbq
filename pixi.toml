@@ -10,7 +10,5 @@ awscli = "*"
 [tasks]
 download = "bash download.sh"
 install = "npm install"
-run-works = "bash -c 'source .env && DATA_VERSION=$VERSION node scripts/run_works.js'"
-run-concepts = "bash -c 'source .env && DATA_VERSION=$VERSION node scripts/run_concepts.js'"
-run-institutions = "bash -c 'source .env && DATA_VERSION=$VERSION node scripts/run_institutions.js'"
+convert = "bash convert.sh"
 upload = "bash upload.sh"
