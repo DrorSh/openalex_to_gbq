@@ -46,14 +46,22 @@ pixi run convert works concepts
 pixi run convert all         # convert everything
 ```
 
-5. Upload to GCS and load into BigQuery
-
-Tables are created with versioned names (e.g. `works_20260210`).
+5. Upload to GCS
 
 ```
 pixi run upload works
 pixi run upload works concepts
 pixi run upload all          # upload everything
+```
+
+6. Load into BigQuery
+
+Creates tables with versioned names (e.g. `works_20260210`).
+
+```
+pixi run bq-load works
+pixi run bq-load works concepts
+pixi run bq-load all         # load everything
 ```
 
 ## Notes
