@@ -1,0 +1,327 @@
+[
+  {
+    "mode": "NULLABLE",
+    "name": "amount",
+    "type": "FLOAT"
+  },
+  {
+    "fields": [
+      {
+        "fields": [
+          {
+            "mode": "NULLABLE",
+            "name": "country",
+            "type": "STRING"
+          },
+          {
+            "fields": [
+              {
+                "mode": "NULLABLE",
+                "name": "asserted_by",
+                "type": "STRING"
+              },
+              {
+                "mode": "NULLABLE",
+                "name": "id",
+                "type": "STRING"
+              },
+              {
+                "mode": "NULLABLE",
+                "name": "type",
+                "type": "STRING"
+              }
+            ],
+            "mode": "REPEATED",
+            "name": "ids",
+            "type": "RECORD"
+          },
+          {
+            "mode": "NULLABLE",
+            "name": "name",
+            "type": "STRING"
+          }
+        ],
+        "mode": "NULLABLE",
+        "name": "affiliation",
+        "type": "RECORD"
+      },
+      {
+        "mode": "NULLABLE",
+        "name": "family_name",
+        "type": "STRING"
+      },
+      {
+        "mode": "NULLABLE",
+        "name": "given_name",
+        "type": "STRING"
+      },
+      {
+        "mode": "NULLABLE",
+        "name": "orcid",
+        "type": "STRING"
+      },
+      {
+        "mode": "NULLABLE",
+        "name": "role_start",
+        "type": "DATE"
+      }
+    ],
+    "mode": "NULLABLE",
+    "name": "co_lead_investigator",
+    "type": "RECORD"
+  },
+  {
+    "mode": "NULLABLE",
+    "name": "created_date",
+    "type": "TIMESTAMP"
+  },
+  {
+    "mode": "NULLABLE",
+    "name": "currency",
+    "type": "STRING"
+  },
+  {
+    "mode": "NULLABLE",
+    "name": "description",
+    "type": "STRING"
+  },
+  {
+    "mode": "NULLABLE",
+    "name": "display_name",
+    "type": "STRING"
+  },
+  {
+    "mode": "NULLABLE",
+    "name": "doi",
+    "type": "STRING"
+  },
+  {
+    "mode": "NULLABLE",
+    "name": "end_date",
+    "type": "DATE"
+  },
+  {
+    "mode": "NULLABLE",
+    "name": "end_year",
+    "type": "INTEGER"
+  },
+  {
+    "mode": "REPEATED",
+    "name": "funded_outputs",
+    "type": "STRING"
+  },
+  {
+    "mode": "NULLABLE",
+    "name": "funded_outputs_count",
+    "type": "INTEGER"
+  },
+  {
+    "fields": [
+      {
+        "mode": "NULLABLE",
+        "name": "display_name",
+        "type": "STRING"
+      },
+      {
+        "mode": "NULLABLE",
+        "name": "doi",
+        "type": "STRING"
+      },
+      {
+        "mode": "NULLABLE",
+        "name": "id",
+        "type": "STRING"
+      },
+      {
+        "mode": "NULLABLE",
+        "name": "ror_id",
+        "type": "STRING"
+      }
+    ],
+    "mode": "NULLABLE",
+    "name": "funder",
+    "type": "RECORD"
+  },
+  {
+    "mode": "NULLABLE",
+    "name": "funder_award_id",
+    "type": "STRING"
+  },
+  {
+    "mode": "NULLABLE",
+    "name": "funder_scheme",
+    "type": "STRING"
+  },
+  {
+    "mode": "NULLABLE",
+    "name": "funding_type",
+    "type": "STRING"
+  },
+  {
+    "mode": "NULLABLE",
+    "name": "id",
+    "type": "STRING"
+  },
+  {
+    "fields": [
+      {
+        "fields": [
+          {
+            "mode": "NULLABLE",
+            "name": "country",
+            "type": "STRING"
+          },
+          {
+            "fields": [
+              {
+                "mode": "NULLABLE",
+                "name": "asserted_by",
+                "type": "STRING"
+              },
+              {
+                "mode": "NULLABLE",
+                "name": "id",
+                "type": "STRING"
+              },
+              {
+                "mode": "NULLABLE",
+                "name": "type",
+                "type": "STRING"
+              }
+            ],
+            "mode": "REPEATED",
+            "name": "ids",
+            "type": "RECORD"
+          },
+          {
+            "mode": "NULLABLE",
+            "name": "name",
+            "type": "STRING"
+          }
+        ],
+        "mode": "NULLABLE",
+        "name": "affiliation",
+        "type": "RECORD"
+      },
+      {
+        "mode": "NULLABLE",
+        "name": "family_name",
+        "type": "STRING"
+      },
+      {
+        "mode": "NULLABLE",
+        "name": "given_name",
+        "type": "STRING"
+      },
+      {
+        "mode": "NULLABLE",
+        "name": "orcid",
+        "type": "STRING"
+      },
+      {
+        "mode": "NULLABLE",
+        "name": "role_start",
+        "type": "DATE"
+      }
+    ],
+    "mode": "REPEATED",
+    "name": "investigators",
+    "type": "RECORD"
+  },
+  {
+    "mode": "NULLABLE",
+    "name": "landing_page_url",
+    "type": "STRING"
+  },
+  {
+    "fields": [
+      {
+        "fields": [
+          {
+            "mode": "NULLABLE",
+            "name": "country",
+            "type": "STRING"
+          },
+          {
+            "fields": [
+              {
+                "mode": "NULLABLE",
+                "name": "asserted_by",
+                "type": "STRING"
+              },
+              {
+                "mode": "NULLABLE",
+                "name": "id",
+                "type": "STRING"
+              },
+              {
+                "mode": "NULLABLE",
+                "name": "type",
+                "type": "STRING"
+              }
+            ],
+            "mode": "REPEATED",
+            "name": "ids",
+            "type": "RECORD"
+          },
+          {
+            "mode": "NULLABLE",
+            "name": "name",
+            "type": "STRING"
+          }
+        ],
+        "mode": "NULLABLE",
+        "name": "affiliation",
+        "type": "RECORD"
+      },
+      {
+        "mode": "NULLABLE",
+        "name": "family_name",
+        "type": "STRING"
+      },
+      {
+        "mode": "NULLABLE",
+        "name": "given_name",
+        "type": "STRING"
+      },
+      {
+        "mode": "NULLABLE",
+        "name": "orcid",
+        "type": "STRING"
+      },
+      {
+        "mode": "NULLABLE",
+        "name": "role_start",
+        "type": "DATE"
+      }
+    ],
+    "mode": "NULLABLE",
+    "name": "lead_investigator",
+    "type": "RECORD"
+  },
+  {
+    "mode": "NULLABLE",
+    "name": "provenance",
+    "type": "STRING"
+  },
+  {
+    "mode": "NULLABLE",
+    "name": "start_date",
+    "type": "DATE"
+  },
+  {
+    "mode": "NULLABLE",
+    "name": "start_year",
+    "type": "INTEGER"
+  },
+  {
+    "mode": "NULLABLE",
+    "name": "updated_date",
+    "type": "TIMESTAMP"
+  },
+  {
+    "mode": "NULLABLE",
+    "name": "works_api_url",
+    "type": "STRING"
+  }
+]
