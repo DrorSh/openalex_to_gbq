@@ -33,7 +33,27 @@ def fix_nulls(obj, top_level=False):
         return [fix_nulls(v) for v in obj if v is not None]
     return obj
 
-files = sorted(glob.glob(os.path.join(BASE_PATH, "**", "*.gz"), recursive=True))
+# Get all subdirectories, sorted
+all_folders = sorted([
+    d for d in os.listdir(BASE_PATH)
+    if os.path.isdir(os.path.join(BASE_PATH, d))
+])
+
+# Apply batch range if specified (e.g. BATCH_RANGE="1-50")
+batch_range = os.environ.get("BATCH_RANGE", "")
+if batch_range:
+    start_idx, end_idx = batch_range.split("-")
+    start_idx = int(start_idx) - 1  # convert to 0-based
+    end_idx = int(end_idx)
+    print(f"Batch mode: processing folders {start_idx+1}-{end_idx} of {len(all_folders)}")
+    all_folders = all_folders[start_idx:end_idx]
+
+# Collect .gz files from selected folders
+files = []
+for folder in all_folders:
+    folder_path = os.path.join(BASE_PATH, folder)
+    files.extend(sorted(glob.glob(os.path.join(folder_path, "*.gz"))))
+
 if not files:
     print(f"No .gz files found in {BASE_PATH}")
     sys.exit(1)

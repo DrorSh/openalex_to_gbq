@@ -1,0 +1,1362 @@
+[
+  {
+    "mode": "NULLABLE",
+    "name": "abstract",
+    "type": "STRING"
+  },
+  {
+    "mode": "NULLABLE",
+    "name": "abstract_inverted_index",
+    "type": "STRING"
+  },
+  {
+    "fields": [
+      {
+        "mode": "NULLABLE",
+        "name": "currency",
+        "type": "STRING"
+      },
+      {
+        "mode": "NULLABLE",
+        "name": "provenance",
+        "type": "STRING"
+      },
+      {
+        "mode": "NULLABLE",
+        "name": "value",
+        "type": "INTEGER"
+      },
+      {
+        "mode": "NULLABLE",
+        "name": "value_usd",
+        "type": "INTEGER"
+      }
+    ],
+    "mode": "REPEATED",
+    "name": "apc_list",
+    "type": "RECORD"
+  },
+  {
+    "fields": [
+      {
+        "mode": "NULLABLE",
+        "name": "currency",
+        "type": "STRING"
+      },
+      {
+        "mode": "NULLABLE",
+        "name": "value",
+        "type": "INTEGER"
+      },
+      {
+        "mode": "NULLABLE",
+        "name": "value_usd",
+        "type": "INTEGER"
+      }
+    ],
+    "mode": "NULLABLE",
+    "name": "apc_paid",
+    "type": "RECORD"
+  },
+  {
+    "mode": "NULLABLE",
+    "name": "authors_count",
+    "type": "INTEGER"
+  },
+  {
+    "fields": [
+      {
+        "fields": [
+          {
+            "mode": "REPEATED",
+            "name": "institution_ids",
+            "type": "STRING"
+          },
+          {
+            "mode": "NULLABLE",
+            "name": "raw_affiliation_string",
+            "type": "STRING"
+          }
+        ],
+        "mode": "REPEATED",
+        "name": "affiliations",
+        "type": "RECORD"
+      },
+      {
+        "fields": [
+          {
+            "mode": "NULLABLE",
+            "name": "display_name",
+            "type": "STRING"
+          },
+          {
+            "mode": "NULLABLE",
+            "name": "id",
+            "type": "STRING"
+          },
+          {
+            "mode": "NULLABLE",
+            "name": "orcid",
+            "type": "STRING"
+          }
+        ],
+        "mode": "NULLABLE",
+        "name": "author",
+        "type": "RECORD"
+      },
+      {
+        "mode": "REPEATED",
+        "name": "countries",
+        "type": "STRING"
+      },
+      {
+        "fields": [
+          {
+            "mode": "NULLABLE",
+            "name": "country_code",
+            "type": "STRING"
+          },
+          {
+            "mode": "NULLABLE",
+            "name": "display_name",
+            "type": "STRING"
+          },
+          {
+            "mode": "NULLABLE",
+            "name": "id",
+            "type": "STRING"
+          },
+          {
+            "mode": "REPEATED",
+            "name": "lineage",
+            "type": "STRING"
+          },
+          {
+            "mode": "NULLABLE",
+            "name": "ror",
+            "type": "STRING"
+          },
+          {
+            "mode": "NULLABLE",
+            "name": "type",
+            "type": "STRING"
+          }
+        ],
+        "mode": "REPEATED",
+        "name": "institutions",
+        "type": "RECORD"
+      },
+      {
+        "mode": "NULLABLE",
+        "name": "is_corresponding",
+        "type": "BOOLEAN"
+      },
+      {
+        "mode": "REPEATED",
+        "name": "raw_affiliation_strings",
+        "type": "STRING"
+      },
+      {
+        "mode": "NULLABLE",
+        "name": "raw_author_name",
+        "type": "STRING"
+      }
+    ],
+    "mode": "REPEATED",
+    "name": "authorships",
+    "type": "RECORD"
+  },
+  {
+    "fields": [
+      {
+        "mode": "NULLABLE",
+        "name": "display_name",
+        "type": "STRING"
+      },
+      {
+        "mode": "NULLABLE",
+        "name": "funder_award_id",
+        "type": "STRING"
+      },
+      {
+        "mode": "NULLABLE",
+        "name": "funder_display_name",
+        "type": "STRING"
+      },
+      {
+        "mode": "NULLABLE",
+        "name": "funder_id",
+        "type": "STRING"
+      },
+      {
+        "mode": "NULLABLE",
+        "name": "id",
+        "type": "STRING"
+      }
+    ],
+    "mode": "REPEATED",
+    "name": "awards",
+    "type": "RECORD"
+  },
+  {
+    "fields": [
+      {
+        "fields": [
+          {
+            "mode": "NULLABLE",
+            "name": "currency",
+            "type": "STRING"
+          },
+          {
+            "mode": "NULLABLE",
+            "name": "price",
+            "type": "INTEGER"
+          }
+        ],
+        "mode": "REPEATED",
+        "name": "apc_prices",
+        "type": "RECORD"
+      },
+      {
+        "mode": "NULLABLE",
+        "name": "apc_usd",
+        "type": "INTEGER"
+      },
+      {
+        "mode": "NULLABLE",
+        "name": "doi",
+        "type": "STRING"
+      },
+      {
+        "mode": "NULLABLE",
+        "name": "endpoint_id",
+        "type": "STRING"
+      },
+      {
+        "mode": "NULLABLE",
+        "name": "grobid_s3_id",
+        "type": "STRING"
+      },
+      {
+        "mode": "NULLABLE",
+        "name": "host_type",
+        "type": "STRING"
+      },
+      {
+        "mode": "NULLABLE",
+        "name": "is_accepted",
+        "type": "BOOLEAN"
+      },
+      {
+        "mode": "NULLABLE",
+        "name": "is_oa",
+        "type": "BOOLEAN"
+      },
+      {
+        "mode": "NULLABLE",
+        "name": "is_published",
+        "type": "BOOLEAN"
+      },
+      {
+        "mode": "NULLABLE",
+        "name": "is_unpaywall_record",
+        "type": "BOOLEAN"
+      },
+      {
+        "mode": "REPEATED",
+        "name": "issn",
+        "type": "STRING"
+      },
+      {
+        "mode": "NULLABLE",
+        "name": "landing_page_url",
+        "type": "STRING"
+      },
+      {
+        "mode": "NULLABLE",
+        "name": "license",
+        "type": "STRING"
+      },
+      {
+        "mode": "NULLABLE",
+        "name": "license_id",
+        "type": "STRING"
+      },
+      {
+        "mode": "NULLABLE",
+        "name": "location_type",
+        "type": "STRING"
+      },
+      {
+        "mode": "NULLABLE",
+        "name": "native_id",
+        "type": "STRING"
+      },
+      {
+        "mode": "NULLABLE",
+        "name": "oa_status",
+        "type": "INTEGER"
+      },
+      {
+        "mode": "NULLABLE",
+        "name": "pdf_s3_id",
+        "type": "STRING"
+      },
+      {
+        "mode": "NULLABLE",
+        "name": "pdf_url",
+        "type": "STRING"
+      },
+      {
+        "mode": "NULLABLE",
+        "name": "pmh_id",
+        "type": "STRING"
+      },
+      {
+        "mode": "NULLABLE",
+        "name": "provenance",
+        "type": "STRING"
+      },
+      {
+        "mode": "NULLABLE",
+        "name": "raw_source_name",
+        "type": "STRING"
+      },
+      {
+        "mode": "NULLABLE",
+        "name": "raw_type",
+        "type": "STRING"
+      },
+      {
+        "mode": "NULLABLE",
+        "name": "sort_score",
+        "type": "INTEGER"
+      },
+      {
+        "fields": [
+          {
+            "mode": "NULLABLE",
+            "name": "display_name",
+            "type": "STRING"
+          },
+          {
+            "mode": "REPEATED",
+            "name": "host_institution_lineage",
+            "type": "STRING"
+          },
+          {
+            "mode": "REPEATED",
+            "name": "host_institution_lineage_names",
+            "type": "STRING"
+          },
+          {
+            "mode": "NULLABLE",
+            "name": "host_organization",
+            "type": "STRING"
+          },
+          {
+            "mode": "REPEATED",
+            "name": "host_organization_lineage",
+            "type": "STRING"
+          },
+          {
+            "mode": "REPEATED",
+            "name": "host_organization_lineage_names",
+            "type": "STRING"
+          },
+          {
+            "mode": "NULLABLE",
+            "name": "host_organization_name",
+            "type": "STRING"
+          },
+          {
+            "mode": "NULLABLE",
+            "name": "id",
+            "type": "STRING"
+          },
+          {
+            "mode": "NULLABLE",
+            "name": "is_core",
+            "type": "BOOLEAN"
+          },
+          {
+            "mode": "NULLABLE",
+            "name": "is_in_doaj",
+            "type": "BOOLEAN"
+          },
+          {
+            "mode": "NULLABLE",
+            "name": "is_oa",
+            "type": "BOOLEAN"
+          },
+          {
+            "mode": "REPEATED",
+            "name": "issn",
+            "type": "STRING"
+          },
+          {
+            "mode": "NULLABLE",
+            "name": "issn_l",
+            "type": "STRING"
+          },
+          {
+            "mode": "NULLABLE",
+            "name": "publisher",
+            "type": "STRING"
+          },
+          {
+            "mode": "NULLABLE",
+            "name": "publisher_id",
+            "type": "STRING"
+          },
+          {
+            "mode": "REPEATED",
+            "name": "publisher_lineage",
+            "type": "STRING"
+          },
+          {
+            "mode": "REPEATED",
+            "name": "publisher_lineage_names",
+            "type": "STRING"
+          },
+          {
+            "mode": "NULLABLE",
+            "name": "type",
+            "type": "STRING"
+          }
+        ],
+        "mode": "NULLABLE",
+        "name": "source",
+        "type": "RECORD"
+      },
+      {
+        "mode": "NULLABLE",
+        "name": "updated",
+        "type": "TIMESTAMP"
+      },
+      {
+        "mode": "NULLABLE",
+        "name": "url_sort_score",
+        "type": "INTEGER"
+      },
+      {
+        "mode": "NULLABLE",
+        "name": "version",
+        "type": "STRING"
+      }
+    ],
+    "mode": "NULLABLE",
+    "name": "best_oa_location",
+    "type": "RECORD"
+  },
+  {
+    "fields": [
+      {
+        "mode": "NULLABLE",
+        "name": "first_page",
+        "type": "STRING"
+      },
+      {
+        "mode": "NULLABLE",
+        "name": "issue",
+        "type": "STRING"
+      },
+      {
+        "mode": "NULLABLE",
+        "name": "last_page",
+        "type": "STRING"
+      },
+      {
+        "mode": "NULLABLE",
+        "name": "volume",
+        "type": "STRING"
+      }
+    ],
+    "mode": "NULLABLE",
+    "name": "biblio",
+    "type": "RECORD"
+  },
+  {
+    "fields": [
+      {
+        "mode": "NULLABLE",
+        "name": "is_in_top_10_percent",
+        "type": "BOOLEAN"
+      },
+      {
+        "mode": "NULLABLE",
+        "name": "is_in_top_1_percent",
+        "type": "BOOLEAN"
+      },
+      {
+        "mode": "NULLABLE",
+        "name": "value",
+        "type": "FLOAT"
+      }
+    ],
+    "mode": "NULLABLE",
+    "name": "citation_normalized_percentile",
+    "type": "RECORD"
+  },
+  {
+    "mode": "NULLABLE",
+    "name": "cited_by_count",
+    "type": "INTEGER"
+  },
+  {
+    "fields": [
+      {
+        "mode": "NULLABLE",
+        "name": "max",
+        "type": "INTEGER"
+      },
+      {
+        "mode": "NULLABLE",
+        "name": "min",
+        "type": "INTEGER"
+      }
+    ],
+    "mode": "NULLABLE",
+    "name": "cited_by_percentile_year",
+    "type": "RECORD"
+  },
+  {
+    "fields": [
+      {
+        "mode": "NULLABLE",
+        "name": "display_name",
+        "type": "STRING"
+      },
+      {
+        "mode": "NULLABLE",
+        "name": "id",
+        "type": "STRING"
+      },
+      {
+        "mode": "NULLABLE",
+        "name": "level",
+        "type": "INTEGER"
+      },
+      {
+        "mode": "NULLABLE",
+        "name": "score",
+        "type": "FLOAT"
+      },
+      {
+        "mode": "NULLABLE",
+        "name": "wikidata",
+        "type": "STRING"
+      }
+    ],
+    "mode": "REPEATED",
+    "name": "concepts",
+    "type": "RECORD"
+  },
+  {
+    "mode": "REPEATED",
+    "name": "corresponding_author_ids",
+    "type": "STRING"
+  },
+  {
+    "mode": "REPEATED",
+    "name": "corresponding_institution_ids",
+    "type": "STRING"
+  },
+  {
+    "mode": "NULLABLE",
+    "name": "countries_distinct_count",
+    "type": "INTEGER"
+  },
+  {
+    "fields": [
+      {
+        "mode": "NULLABLE",
+        "name": "cited_by_count",
+        "type": "INTEGER"
+      },
+      {
+        "mode": "NULLABLE",
+        "name": "year",
+        "type": "INTEGER"
+      }
+    ],
+    "mode": "REPEATED",
+    "name": "counts_by_year",
+    "type": "RECORD"
+  },
+  {
+    "mode": "NULLABLE",
+    "name": "created_date",
+    "type": "TIMESTAMP"
+  },
+  {
+    "mode": "NULLABLE",
+    "name": "display_name",
+    "type": "STRING"
+  },
+  {
+    "mode": "NULLABLE",
+    "name": "doi",
+    "type": "STRING"
+  },
+  {
+    "fields": [
+      {
+        "mode": "NULLABLE",
+        "name": "display_name",
+        "type": "STRING"
+      },
+      {
+        "mode": "NULLABLE",
+        "name": "id",
+        "type": "STRING"
+      },
+      {
+        "mode": "NULLABLE",
+        "name": "ror",
+        "type": "STRING"
+      }
+    ],
+    "mode": "REPEATED",
+    "name": "funders",
+    "type": "RECORD"
+  },
+  {
+    "mode": "NULLABLE",
+    "name": "fwci",
+    "type": "FLOAT"
+  },
+  {
+    "mode": "NULLABLE",
+    "name": "has_abstract",
+    "type": "BOOLEAN"
+  },
+  {
+    "fields": [
+      {
+        "mode": "NULLABLE",
+        "name": "grobid_xml",
+        "type": "BOOLEAN"
+      },
+      {
+        "mode": "NULLABLE",
+        "name": "pdf",
+        "type": "BOOLEAN"
+      }
+    ],
+    "mode": "NULLABLE",
+    "name": "has_content",
+    "type": "RECORD"
+  },
+  {
+    "mode": "NULLABLE",
+    "name": "has_fulltext",
+    "type": "BOOLEAN"
+  },
+  {
+    "mode": "NULLABLE",
+    "name": "id",
+    "type": "STRING"
+  },
+  {
+    "fields": [
+      {
+        "mode": "NULLABLE",
+        "name": "doi",
+        "type": "STRING"
+      },
+      {
+        "mode": "NULLABLE",
+        "name": "mag",
+        "type": "INTEGER"
+      },
+      {
+        "mode": "NULLABLE",
+        "name": "openalex",
+        "type": "STRING"
+      },
+      {
+        "mode": "NULLABLE",
+        "name": "pmid",
+        "type": "STRING"
+      }
+    ],
+    "mode": "NULLABLE",
+    "name": "ids",
+    "type": "RECORD"
+  },
+  {
+    "mode": "REPEATED",
+    "name": "indexed_in",
+    "type": "STRING"
+  },
+  {
+    "mode": "REPEATED",
+    "name": "institutions",
+    "type": "STRING"
+  },
+  {
+    "mode": "NULLABLE",
+    "name": "institutions_distinct_count",
+    "type": "INTEGER"
+  },
+  {
+    "mode": "NULLABLE",
+    "name": "is_paratext",
+    "type": "BOOLEAN"
+  },
+  {
+    "mode": "NULLABLE",
+    "name": "is_retracted",
+    "type": "BOOLEAN"
+  },
+  {
+    "mode": "NULLABLE",
+    "name": "is_xpac",
+    "type": "BOOLEAN"
+  },
+  {
+    "fields": [
+      {
+        "mode": "NULLABLE",
+        "name": "display_name",
+        "type": "STRING"
+      },
+      {
+        "mode": "NULLABLE",
+        "name": "id",
+        "type": "STRING"
+      },
+      {
+        "mode": "NULLABLE",
+        "name": "score",
+        "type": "FLOAT"
+      }
+    ],
+    "mode": "REPEATED",
+    "name": "keywords",
+    "type": "RECORD"
+  },
+  {
+    "mode": "NULLABLE",
+    "name": "language",
+    "type": "STRING"
+  },
+  {
+    "fields": [
+      {
+        "mode": "NULLABLE",
+        "name": "is_accepted",
+        "type": "BOOLEAN"
+      },
+      {
+        "mode": "NULLABLE",
+        "name": "is_oa",
+        "type": "BOOLEAN"
+      },
+      {
+        "mode": "NULLABLE",
+        "name": "is_published",
+        "type": "BOOLEAN"
+      },
+      {
+        "mode": "NULLABLE",
+        "name": "landing_page_url",
+        "type": "STRING"
+      },
+      {
+        "mode": "NULLABLE",
+        "name": "license",
+        "type": "STRING"
+      },
+      {
+        "mode": "NULLABLE",
+        "name": "license_id",
+        "type": "STRING"
+      },
+      {
+        "mode": "NULLABLE",
+        "name": "native_id",
+        "type": "STRING"
+      },
+      {
+        "mode": "NULLABLE",
+        "name": "pdf_url",
+        "type": "STRING"
+      },
+      {
+        "mode": "NULLABLE",
+        "name": "provenance",
+        "type": "STRING"
+      },
+      {
+        "mode": "NULLABLE",
+        "name": "raw_source_name",
+        "type": "STRING"
+      },
+      {
+        "mode": "NULLABLE",
+        "name": "raw_type",
+        "type": "STRING"
+      },
+      {
+        "fields": [
+          {
+            "mode": "NULLABLE",
+            "name": "display_name",
+            "type": "STRING"
+          },
+          {
+            "mode": "NULLABLE",
+            "name": "host_organization",
+            "type": "STRING"
+          },
+          {
+            "mode": "REPEATED",
+            "name": "host_organization_lineage",
+            "type": "STRING"
+          },
+          {
+            "mode": "REPEATED",
+            "name": "host_organization_lineage_names",
+            "type": "STRING"
+          },
+          {
+            "mode": "NULLABLE",
+            "name": "host_organization_name",
+            "type": "STRING"
+          },
+          {
+            "mode": "NULLABLE",
+            "name": "id",
+            "type": "STRING"
+          },
+          {
+            "mode": "NULLABLE",
+            "name": "is_core",
+            "type": "BOOLEAN"
+          },
+          {
+            "mode": "NULLABLE",
+            "name": "is_in_doaj",
+            "type": "BOOLEAN"
+          },
+          {
+            "mode": "NULLABLE",
+            "name": "is_oa",
+            "type": "BOOLEAN"
+          },
+          {
+            "mode": "REPEATED",
+            "name": "issn",
+            "type": "STRING"
+          },
+          {
+            "mode": "NULLABLE",
+            "name": "issn_l",
+            "type": "STRING"
+          },
+          {
+            "mode": "NULLABLE",
+            "name": "type",
+            "type": "STRING"
+          }
+        ],
+        "mode": "NULLABLE",
+        "name": "source",
+        "type": "RECORD"
+      },
+      {
+        "mode": "NULLABLE",
+        "name": "version",
+        "type": "STRING"
+      }
+    ],
+    "mode": "REPEATED",
+    "name": "locations",
+    "type": "RECORD"
+  },
+  {
+    "mode": "NULLABLE",
+    "name": "locations_count",
+    "type": "INTEGER"
+  },
+  {
+    "fields": [
+      {
+        "mode": "NULLABLE",
+        "name": "descriptor_name",
+        "type": "STRING"
+      },
+      {
+        "mode": "NULLABLE",
+        "name": "descriptor_ui",
+        "type": "STRING"
+      },
+      {
+        "mode": "NULLABLE",
+        "name": "is_major_topic",
+        "type": "BOOLEAN"
+      },
+      {
+        "mode": "NULLABLE",
+        "name": "qualifier_name",
+        "type": "STRING"
+      },
+      {
+        "mode": "NULLABLE",
+        "name": "qualifier_ui",
+        "type": "STRING"
+      }
+    ],
+    "mode": "REPEATED",
+    "name": "mesh",
+    "type": "RECORD"
+  },
+  {
+    "fields": [
+      {
+        "mode": "NULLABLE",
+        "name": "any_repository_has_fulltext",
+        "type": "BOOLEAN"
+      },
+      {
+        "mode": "NULLABLE",
+        "name": "is_oa",
+        "type": "BOOLEAN"
+      },
+      {
+        "mode": "NULLABLE",
+        "name": "oa_status",
+        "type": "STRING"
+      },
+      {
+        "mode": "NULLABLE",
+        "name": "oa_url",
+        "type": "STRING"
+      }
+    ],
+    "mode": "NULLABLE",
+    "name": "open_access",
+    "type": "RECORD"
+  },
+  {
+    "fields": [
+      {
+        "fields": [
+          {
+            "mode": "NULLABLE",
+            "name": "currency",
+            "type": "STRING"
+          },
+          {
+            "mode": "NULLABLE",
+            "name": "price",
+            "type": "INTEGER"
+          }
+        ],
+        "mode": "REPEATED",
+        "name": "apc_prices",
+        "type": "RECORD"
+      },
+      {
+        "mode": "NULLABLE",
+        "name": "apc_usd",
+        "type": "INTEGER"
+      },
+      {
+        "mode": "NULLABLE",
+        "name": "endpoint_id",
+        "type": "STRING"
+      },
+      {
+        "mode": "NULLABLE",
+        "name": "grobid_s3_id",
+        "type": "STRING"
+      },
+      {
+        "mode": "NULLABLE",
+        "name": "host_type",
+        "type": "STRING"
+      },
+      {
+        "mode": "NULLABLE",
+        "name": "is_accepted",
+        "type": "BOOLEAN"
+      },
+      {
+        "mode": "NULLABLE",
+        "name": "is_oa",
+        "type": "BOOLEAN"
+      },
+      {
+        "mode": "NULLABLE",
+        "name": "is_published",
+        "type": "BOOLEAN"
+      },
+      {
+        "mode": "NULLABLE",
+        "name": "is_unpaywall_record",
+        "type": "BOOLEAN"
+      },
+      {
+        "mode": "NULLABLE",
+        "name": "landing_page_url",
+        "type": "STRING"
+      },
+      {
+        "mode": "NULLABLE",
+        "name": "license",
+        "type": "STRING"
+      },
+      {
+        "mode": "NULLABLE",
+        "name": "license_id",
+        "type": "STRING"
+      },
+      {
+        "mode": "NULLABLE",
+        "name": "location_type",
+        "type": "STRING"
+      },
+      {
+        "mode": "NULLABLE",
+        "name": "native_id",
+        "type": "STRING"
+      },
+      {
+        "mode": "NULLABLE",
+        "name": "oa_status",
+        "type": "INTEGER"
+      },
+      {
+        "mode": "NULLABLE",
+        "name": "pdf_s3_id",
+        "type": "STRING"
+      },
+      {
+        "mode": "NULLABLE",
+        "name": "pdf_url",
+        "type": "STRING"
+      },
+      {
+        "mode": "NULLABLE",
+        "name": "pmh_id",
+        "type": "STRING"
+      },
+      {
+        "mode": "NULLABLE",
+        "name": "provenance",
+        "type": "STRING"
+      },
+      {
+        "mode": "NULLABLE",
+        "name": "raw_source_name",
+        "type": "STRING"
+      },
+      {
+        "mode": "NULLABLE",
+        "name": "raw_type",
+        "type": "STRING"
+      },
+      {
+        "mode": "NULLABLE",
+        "name": "sort_score",
+        "type": "INTEGER"
+      },
+      {
+        "fields": [
+          {
+            "mode": "NULLABLE",
+            "name": "display_name",
+            "type": "STRING"
+          },
+          {
+            "mode": "NULLABLE",
+            "name": "host_organization",
+            "type": "STRING"
+          },
+          {
+            "mode": "REPEATED",
+            "name": "host_organization_lineage",
+            "type": "STRING"
+          },
+          {
+            "mode": "REPEATED",
+            "name": "host_organization_lineage_names",
+            "type": "STRING"
+          },
+          {
+            "mode": "NULLABLE",
+            "name": "host_organization_name",
+            "type": "STRING"
+          },
+          {
+            "mode": "NULLABLE",
+            "name": "id",
+            "type": "STRING"
+          },
+          {
+            "mode": "NULLABLE",
+            "name": "is_core",
+            "type": "BOOLEAN"
+          },
+          {
+            "mode": "NULLABLE",
+            "name": "is_in_doaj",
+            "type": "BOOLEAN"
+          },
+          {
+            "mode": "NULLABLE",
+            "name": "is_oa",
+            "type": "BOOLEAN"
+          },
+          {
+            "mode": "REPEATED",
+            "name": "issn",
+            "type": "STRING"
+          },
+          {
+            "mode": "NULLABLE",
+            "name": "issn_l",
+            "type": "STRING"
+          },
+          {
+            "mode": "NULLABLE",
+            "name": "type",
+            "type": "STRING"
+          }
+        ],
+        "mode": "NULLABLE",
+        "name": "source",
+        "type": "RECORD"
+      },
+      {
+        "mode": "NULLABLE",
+        "name": "updated",
+        "type": "TIMESTAMP"
+      },
+      {
+        "mode": "NULLABLE",
+        "name": "url_sort_score",
+        "type": "INTEGER"
+      },
+      {
+        "mode": "NULLABLE",
+        "name": "version",
+        "type": "STRING"
+      }
+    ],
+    "mode": "NULLABLE",
+    "name": "primary_location",
+    "type": "RECORD"
+  },
+  {
+    "fields": [
+      {
+        "mode": "NULLABLE",
+        "name": "display_name",
+        "type": "STRING"
+      },
+      {
+        "fields": [
+          {
+            "mode": "NULLABLE",
+            "name": "display_name",
+            "type": "STRING"
+          },
+          {
+            "mode": "NULLABLE",
+            "name": "id",
+            "type": "STRING"
+          }
+        ],
+        "mode": "NULLABLE",
+        "name": "domain",
+        "type": "RECORD"
+      },
+      {
+        "fields": [
+          {
+            "mode": "NULLABLE",
+            "name": "display_name",
+            "type": "STRING"
+          },
+          {
+            "mode": "NULLABLE",
+            "name": "id",
+            "type": "STRING"
+          }
+        ],
+        "mode": "NULLABLE",
+        "name": "field",
+        "type": "RECORD"
+      },
+      {
+        "mode": "NULLABLE",
+        "name": "id",
+        "type": "STRING"
+      },
+      {
+        "mode": "NULLABLE",
+        "name": "score",
+        "type": "FLOAT"
+      },
+      {
+        "fields": [
+          {
+            "mode": "NULLABLE",
+            "name": "display_name",
+            "type": "STRING"
+          },
+          {
+            "mode": "NULLABLE",
+            "name": "id",
+            "type": "STRING"
+          }
+        ],
+        "mode": "NULLABLE",
+        "name": "subfield",
+        "type": "RECORD"
+      }
+    ],
+    "mode": "NULLABLE",
+    "name": "primary_topic",
+    "type": "RECORD"
+  },
+  {
+    "mode": "NULLABLE",
+    "name": "publication_date",
+    "type": "DATE"
+  },
+  {
+    "mode": "NULLABLE",
+    "name": "publication_year",
+    "type": "INTEGER"
+  },
+  {
+    "mode": "REPEATED",
+    "name": "referenced_works",
+    "type": "STRING"
+  },
+  {
+    "mode": "NULLABLE",
+    "name": "referenced_works_count",
+    "type": "INTEGER"
+  },
+  {
+    "mode": "REPEATED",
+    "name": "related_works",
+    "type": "STRING"
+  },
+  {
+    "fields": [
+      {
+        "mode": "NULLABLE",
+        "name": "display_name",
+        "type": "STRING"
+      },
+      {
+        "mode": "NULLABLE",
+        "name": "id",
+        "type": "STRING"
+      },
+      {
+        "mode": "NULLABLE",
+        "name": "score",
+        "type": "FLOAT"
+      }
+    ],
+    "mode": "REPEATED",
+    "name": "sustainable_development_goals",
+    "type": "RECORD"
+  },
+  {
+    "mode": "NULLABLE",
+    "name": "title",
+    "type": "STRING"
+  },
+  {
+    "fields": [
+      {
+        "mode": "NULLABLE",
+        "name": "display_name",
+        "type": "STRING"
+      },
+      {
+        "fields": [
+          {
+            "mode": "NULLABLE",
+            "name": "display_name",
+            "type": "STRING"
+          },
+          {
+            "mode": "NULLABLE",
+            "name": "id",
+            "type": "STRING"
+          }
+        ],
+        "mode": "NULLABLE",
+        "name": "domain",
+        "type": "RECORD"
+      },
+      {
+        "fields": [
+          {
+            "mode": "NULLABLE",
+            "name": "display_name",
+            "type": "STRING"
+          },
+          {
+            "mode": "NULLABLE",
+            "name": "id",
+            "type": "STRING"
+          }
+        ],
+        "mode": "NULLABLE",
+        "name": "field",
+        "type": "RECORD"
+      },
+      {
+        "mode": "NULLABLE",
+        "name": "id",
+        "type": "STRING"
+      },
+      {
+        "mode": "NULLABLE",
+        "name": "score",
+        "type": "FLOAT"
+      },
+      {
+        "fields": [
+          {
+            "mode": "NULLABLE",
+            "name": "display_name",
+            "type": "STRING"
+          },
+          {
+            "mode": "NULLABLE",
+            "name": "id",
+            "type": "STRING"
+          }
+        ],
+        "mode": "NULLABLE",
+        "name": "subfield",
+        "type": "RECORD"
+      }
+    ],
+    "mode": "REPEATED",
+    "name": "topics",
+    "type": "RECORD"
+  },
+  {
+    "mode": "NULLABLE",
+    "name": "type",
+    "type": "STRING"
+  },
+  {
+    "mode": "NULLABLE",
+    "name": "updated_date",
+    "type": "TIMESTAMP"
+  }
+]

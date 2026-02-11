@@ -51,26 +51,42 @@ pixi run download works authors
 pixi run download all        # download everything
 ```
 
-4. Generate schemas
+4. Convert files
 
-Uses [bigquery-schema-generator](https://github.com/bxparks/bigquery-schema-generator) to generate BQ schemas from the downloaded data.
+Only `works`, `concepts`, `institutions`, and `sources` require conversion (fixing null arrays, stringifying inverted index). All other datasets can be uploaded as-is. Already-converted files are skipped on re-run, so it's safe to interrupt and resume.
+
+For large datasets like `works` (~600GB), you can process in batches by appending a range. Folders are sorted alphabetically; use `count` to see the total. Use `--parallel` to process multiple folders concurrently.
+
+```
+pixi run convert works count       # show number of folders
+pixi run convert works 1-50        # convert folders 1-50
+pixi run convert works 51-100      # convert folders 51-100
+pixi run convert --parallel works   # parallel, all folders
+pixi run convert --parallel=4 works 1-50  # 4 workers, folders 1-50
+pixi run convert works             # sequential, all folders
+pixi run convert all               # convert works, concepts, institutions, sources
+```
+
+5. Generate schemas
+
+Uses [bigquery-schema-generator](https://github.com/bxparks/bigquery-schema-generator) to generate BQ schemas from the data. Prefers converted data when available, otherwise falls back to raw. If a schema file already exists, it is updated incrementally (new fields are merged in).
 
 ```
 pixi run schema authors
 pixi run schema all          # generate all schemas
 ```
 
-5. Convert files
+6. Validate record counts
 
-Only `works`, `concepts`, `institutions`, and `sources` require conversion (hyphen removal, fixing null arrays). All other datasets can be uploaded as-is.
+Checks that converted files match the record counts in the OpenAlex manifest.
 
 ```
-pixi run convert works
-pixi run convert works concepts
-pixi run convert all         # convert works, concepts, institutions
+pixi run validate works
+pixi run validate works concepts
+pixi run validate all          # validate everything
 ```
 
-6. Upload to GCS
+7. Upload to GCS
 
 ```
 pixi run upload works
@@ -78,7 +94,7 @@ pixi run upload works concepts
 pixi run upload all          # upload everything
 ```
 
-7. Load into BigQuery
+8. Load into BigQuery
 
 Creates tables with versioned names (e.g. `works_20260210`).
 
@@ -88,7 +104,7 @@ pixi run bq works concepts
 pixi run bq all              # load everything
 ```
 
-8. Cleanup
+9. Cleanup
 
 Remove local data files for the current version:
 

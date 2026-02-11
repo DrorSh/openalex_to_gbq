@@ -80,7 +80,7 @@ for ds in "${selected[@]}"; do
 
     echo "Generating schema for ${ds} ..."
 
-    # Sample 100 records from every .gz file to capture all field variations
+    # Sample 1000 records from every .gz file to capture all field variations
     TMPFILE=$(mktemp)
     python3 -c "
 import gzip, glob, sys, os
@@ -91,18 +91,24 @@ if not files:
     print(f'Warning: no .gz files found in {raw_dir}', file=sys.stderr)
     sys.exit(1)
 
-print(f'  Sampling 100 records from each of {len(files)} files ...', file=sys.stderr)
+print(f'  Sampling 1000 records from each of {len(files)} files ...', file=sys.stderr)
 for path in files:
     with gzip.open(path, 'rt') as f:
         for i, line in enumerate(f):
-            if i >= 100: break
+            if i >= 1000: break
             sys.stdout.write(line)
 " "$DATA_DIR" > "$TMPFILE"
 
     LINES=$(wc -l < "$TMPFILE")
     echo "  Sampled ${LINES} records total"
 
-    generate-schema --keep_nulls --ignore_invalid_lines < "$TMPFILE" > "$SCHEMA_FILE"
+    SCHEMA_FLAGS="--keep_nulls --ignore_invalid_lines"
+    if [ -f "$SCHEMA_FILE" ]; then
+        echo "  Updating existing schema incrementally"
+        SCHEMA_FLAGS="$SCHEMA_FLAGS --existing_schema_path $SCHEMA_FILE"
+    fi
+    generate-schema $SCHEMA_FLAGS < "$TMPFILE" > "${SCHEMA_FILE}.tmp"
+    mv "${SCHEMA_FILE}.tmp" "$SCHEMA_FILE"
     rm -f "$TMPFILE"
 
     echo "  Saved to ${SCHEMA_FILE}"

@@ -122,9 +122,22 @@ if (!VERSION) { console.error("Error: DATA_VERSION env var not set"); process.ex
 const BASE_PATH = `./data/raw/${VERSION}/institutions/`;
 const CONVERTED_PATH = `./data/converted/${VERSION}/institutions/`;
 
-const folders = fs.readdirSync(BASE_PATH, { withFileTypes: true })
+let folders = fs.readdirSync(BASE_PATH, { withFileTypes: true })
     .filter(dirent => dirent.isDirectory())
-    .map(dirent => dirent.name);
+    .map(dirent => dirent.name)
+    .sort();
+
+// Apply batch range if specified (e.g. BATCH_RANGE="1-50")
+const batchRange = process.env.BATCH_RANGE;
+if (batchRange) {
+    const [startStr, endStr] = batchRange.split('-');
+    const start_idx = parseInt(startStr, 10) - 1;
+    const end_idx = parseInt(endStr, 10);
+    console.log(`Batch mode: processing folders ${startStr}-${endStr} of ${folders.length}`);
+    folders = folders.slice(start_idx, end_idx);
+}
+
+console.log(`Processing ${folders.length} folders ...`);
 
 folders.forEach(folder => {
     const inFolderPath = path.join(BASE_PATH, folder);

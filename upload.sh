@@ -68,11 +68,8 @@ for ds in "${selected[@]}"; do
         SRC_DIR="data/raw/${VERSION}/${ds}"
     fi
 
-    # Remove manifest files before uploading
-    find "$SRC_DIR" -name 'manifest' -type f -delete
-
     echo "Uploading ${SRC_DIR} to ${GCS_PATH} ..."
-    gsutil -m cp -r "${SRC_DIR}/"* "${GCS_PATH}"
+    gsutil -m cp -r -x 'manifest' "${SRC_DIR}/"* "${GCS_PATH}"
 done
 
 echo "Done."
