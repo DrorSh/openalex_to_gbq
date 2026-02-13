@@ -16,21 +16,34 @@ fi
 DATASETS=(authors awards concepts domains fields funders institutions publishers sources subfields topics works)
 SCHEMA_DIR="schemas/${VERSION}"
 
+MAX_FILES=0  # 0 means no limit
+
 usage() {
-    echo "Usage: bash schema.sh <dataset> [dataset ...]"
+    echo "Usage: bash schema.sh [-m max_files] <dataset> [dataset ...]"
     echo ""
     echo "Generates BigQuery schema from downloaded data using bigquery-schema-generator."
     echo "Schemas are saved to ${SCHEMA_DIR}/."
+    echo ""
+    echo "Options:"
+    echo "  -m N    Process at most N files per dataset (default: all files)"
     echo ""
     echo "Available datasets: ${DATASETS[*]}"
     echo "Use 'all' to generate all schemas."
     echo ""
     echo "Examples:"
     echo "  bash schema.sh authors"
-    echo "  bash schema.sh works authors"
-    echo "  bash schema.sh all"
+    echo "  bash schema.sh -m 5 works"
+    echo "  bash schema.sh -m 10 all"
     exit 1
 }
+
+while getopts ":m:" opt; do
+    case $opt in
+        m) MAX_FILES="$OPTARG" ;;
+        *) usage ;;
+    esac
+done
+shift $((OPTIND - 1))
 
 if [ $# -eq 0 ]; then
     usage
@@ -86,18 +99,24 @@ for ds in "${selected[@]}"; do
 import gzip, glob, sys, os
 
 raw_dir = sys.argv[1]
+max_files = int(sys.argv[2])
 files = sorted(glob.glob(os.path.join(raw_dir, '**', '*.gz'), recursive=True))
 if not files:
     print(f'Warning: no .gz files found in {raw_dir}', file=sys.stderr)
     sys.exit(1)
 
-print(f'  Sampling 1000 records from each of {len(files)} files ...', file=sys.stderr)
+total = len(files)
+if max_files > 0:
+    files = files[:max_files]
+    print(f'  Sampling 1000 records from {len(files)} of {total} files (limited by -m {max_files}) ...', file=sys.stderr)
+else:
+    print(f'  Sampling 1000 records from each of {len(files)} files ...', file=sys.stderr)
 for path in files:
     with gzip.open(path, 'rt') as f:
         for i, line in enumerate(f):
             if i >= 1000: break
             sys.stdout.write(line)
-" "$DATA_DIR" > "$TMPFILE"
+" "$DATA_DIR" "$MAX_FILES" > "$TMPFILE"
 
     LINES=$(wc -l < "$TMPFILE")
     echo "  Sampled ${LINES} records total"
