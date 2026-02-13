@@ -71,27 +71,36 @@ pixi run convert all               # convert works, concepts, institutions, sour
 
 Uses [bigquery-schema-generator](https://github.com/bxparks/bigquery-schema-generator) to generate BQ schemas from the data. Prefers converted data when available, otherwise falls back to raw. If a schema file already exists, it is updated incrementally (new fields are merged in).
 
+Use `-m N` to limit the number of files sampled per dataset (useful for quick schema drafts).
+
 ```
 pixi run schema authors
-pixi run schema all          # generate all schemas
+pixi run schema all              # generate all schemas
+pixi run schema -- -m 5 works    # sample at most 5 files
 ```
 
 6. Validate record counts
 
-Checks that converted files match the record counts in the OpenAlex manifest.
+Checks that converted files match the record counts in the OpenAlex manifest. Uses parallel decompression (cores/2) and `pigz` when available for faster validation.
+
+Results are saved to `data/validation/<VERSION>/<dataset>.tsv` as each file completes, so interrupted runs resume where they left off. Delete the `.tsv` file to re-validate from scratch.
 
 ```
 pixi run validate works
 pixi run validate works concepts
-pixi run validate all          # validate everything
+pixi run validate all            # validate everything
 ```
 
 7. Upload to GCS
 
+Uploads files to GCS, tracking progress in `data/upload/<VERSION>/<dataset>.tsv`. Already-uploaded files (status OK) are skipped on re-run; failed uploads are retried automatically.
+
+Use `-m N` to upload in batches of N files per dataset.
+
 ```
 pixi run upload works
-pixi run upload works concepts
-pixi run upload all          # upload everything
+pixi run upload -- -m 5 works    # upload at most 5 new files
+pixi run upload all              # upload everything
 ```
 
 8. Load into BigQuery
