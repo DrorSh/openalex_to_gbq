@@ -55,6 +55,18 @@ else
     done
 fi
 
+# Use pigz for faster decompression if available, otherwise fall back to zcat
+if command -v pigz &> /dev/null; then
+    DECOMPRESS="pigz -dc"
+else
+    DECOMPRESS="zcat"
+fi
+
+NPROC=$(( ($(nproc 2>/dev/null || echo 4) + 1) / 2 ))
+
+VALIDATION_DIR="data/validation/${VERSION}"
+mkdir -p "$VALIDATION_DIR"
+
 exit_code=0
 
 for ds in "${selected[@]}"; do
@@ -68,27 +80,96 @@ for ds in "${selected[@]}"; do
 
     echo "Validating ${ds} ..."
 
-    actual_total=0
     expected_total=$(jq '.meta.record_count' "$MANIFEST")
-    all_ok=true
+    PROGRESS_FILE="${VALIDATION_DIR}/${ds}.tsv"
 
-    # Iterate over each entry in the manifest
+    # Load previously validated files (format: file\tactual\texpected\tstatus)
+    declare -A VALIDATED=()
+    if [ -f "$PROGRESS_FILE" ]; then
+        while IFS=$'\t' read -r prev_rel prev_actual prev_expected prev_status; do
+            [ "$prev_rel" = "file" ] && continue  # skip header
+            VALIDATED["$prev_rel"]="$prev_actual"
+        done < "$PROGRESS_FILE"
+    else
+        printf 'file\tactual\texpected\tstatus\n' > "$PROGRESS_FILE"
+    fi
+
+    # Build list of files from manifest
+    TMPDIR_VALIDATE=$(mktemp -d)
+    MISSING=()
+    PENDING_COUNT=0
+    CACHED_COUNT=0
+
     while IFS=$'\t' read -r url expected_count; do
-        # Strip s3://openalex/data/ prefix to get relative path
         rel_path="${url#s3://openalex/data/}"
-
-        # Validate converted files only
         converted_file="data/converted/${VERSION}/${rel_path}"
 
         if [ -f "$converted_file" ]; then
-            file="$converted_file"
+            if [ -n "${VALIDATED[$rel_path]+x}" ]; then
+                CACHED_COUNT=$((CACHED_COUNT + 1))
+            else
+                printf '%s\t%s\t%s\n' "$converted_file" "$expected_count" "$rel_path" >> "${TMPDIR_VALIDATE}/files.tsv"
+                PENDING_COUNT=$((PENDING_COUNT + 1))
+            fi
         else
-            echo "  ${rel_path}: FILE NOT FOUND"
-            all_ok=false
+            MISSING+=("$rel_path")
+        fi
+    done < <(jq -r '.entries[] | [.url, .meta.record_count] | @tsv' "$MANIFEST")
+
+    for m in "${MISSING[@]+"${MISSING[@]}"}"; do
+        echo "  ${m}: FILE NOT FOUND"
+    done
+
+    all_ok=true
+    if [ ${#MISSING[@]} -gt 0 ]; then
+        all_ok=false
+    fi
+
+    if [ "$CACHED_COUNT" -gt 0 ]; then
+        echo "  ${CACHED_COUNT} files already validated (cached)"
+    fi
+
+    # Count lines in parallel for pending files, saving each result immediately
+    if [ "$PENDING_COUNT" -gt 0 ]; then
+        FILE_COUNT=$(wc -l < "${TMPDIR_VALIDATE}/files.tsv")
+        echo "  Counting lines in ${FILE_COUNT} files (${NPROC} parallel) ..."
+
+        # Each worker: count lines, compare, append result to progress file
+        while IFS=$'\t' read -r file expected_count rel_path; do
+            printf '%s\t%s\t%s\n' "$file" "$rel_path" "$expected_count"
+        done < "${TMPDIR_VALIDATE}/files.tsv" | \
+            xargs -P "$NPROC" -d '\n' -I{} bash -c "
+                file=\$(printf '%s' \"{}\" | cut -f1)
+                rel_path=\$(printf '%s' \"{}\" | cut -f2)
+                expected=\$(printf '%s' \"{}\" | cut -f3)
+                actual=\$($DECOMPRESS \"\$file\" | wc -l | tr -d ' ')
+                if [ \"\$actual\" -eq \"\$expected\" ]; then status=OK; else status=MISMATCH; fi
+                flock \"${PROGRESS_FILE}.lock\" bash -c \"printf '%s\t%s\t%s\t%s\n' '\$rel_path' '\$actual' '\$expected' '\$status' >> '${PROGRESS_FILE}'\"
+                done=\$(grep -c -v '^file' \"${PROGRESS_FILE}\")
+                printf '\r  Progress: %s/%s files counted' \"\$done\" \"$(( FILE_COUNT + CACHED_COUNT ))\" >&2
+            "
+        rm -f "${PROGRESS_FILE}.lock"
+        echo ""
+
+        # Reload progress file into VALIDATED
+        while IFS=$'\t' read -r prev_rel prev_actual prev_expected prev_status; do
+            [ "$prev_rel" = "file" ] && continue
+            VALIDATED["$prev_rel"]="$prev_actual"
+        done < "$PROGRESS_FILE"
+    fi
+
+    rm -rf "$TMPDIR_VALIDATE"
+
+    # Report results using cached + new counts
+    actual_total=0
+    while IFS=$'\t' read -r url expected_count; do
+        rel_path="${url#s3://openalex/data/}"
+
+        if [ -z "${VALIDATED[$rel_path]+x}" ]; then
             continue
         fi
 
-        actual_count=$(zcat "$file" | wc -l)
+        actual_count="${VALIDATED[$rel_path]}"
         actual_total=$((actual_total + actual_count))
 
         if [ "$actual_count" -eq "$expected_count" ]; then
@@ -115,6 +196,8 @@ for ds in "${selected[@]}"; do
         exit_code=1
     fi
     echo ""
+
+    unset VALIDATED
 done
 
 exit $exit_code

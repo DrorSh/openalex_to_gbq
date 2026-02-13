@@ -69,6 +69,9 @@ else
     done
 fi
 
+UPLOAD_DIR="data/upload/${VERSION}"
+mkdir -p "$UPLOAD_DIR"
+
 for ds in "${selected[@]}"; do
     GCS_PATH="gs://${GCS_BUCKET}/${VERSION}/${ds}/"
 
@@ -80,34 +83,38 @@ for ds in "${selected[@]}"; do
         SRC_DIR="data/raw/${VERSION}/${ds}"
     fi
 
-    # List files already in GCS to skip re-uploads
-    echo "Checking existing files in ${GCS_PATH} ..."
-    mapfile -t EXISTING < <(gsutil ls "${GCS_PATH}" 2>/dev/null | xargs -r -n1 basename || true)
+    PROGRESS_FILE="${UPLOAD_DIR}/${ds}.tsv"
+
+    # Load previously uploaded files from progress file
+    declare -A UPLOADED=()
+    if [ -f "$PROGRESS_FILE" ]; then
+        while IFS=$'\t' read -r prev_file prev_dest prev_status; do
+            [ "$prev_file" = "file" ] && continue  # skip header
+            [ "$prev_status" = "OK" ] || continue   # retry failed uploads
+            UPLOADED["$prev_file"]=1
+        done < "$PROGRESS_FILE"
+    else
+        printf 'file\tdestination\tstatus\n' > "$PROGRESS_FILE"
+    fi
 
     # Collect local files (excluding manifest), filter out already-uploaded ones
     mapfile -t ALL_LOCAL < <(find "$SRC_DIR" -type f ! -name 'manifest' | sort)
     PENDING=()
     for f in "${ALL_LOCAL[@]}"; do
         fname=$(basename "$f")
-        skip=false
-        for ex in "${EXISTING[@]+"${EXISTING[@]}"}"; do
-            if [ "$fname" = "$ex" ]; then
-                skip=true
-                break
-            fi
-        done
-        if [ "$skip" = false ]; then
+        if [ -z "${UPLOADED[$fname]+x}" ]; then
             PENDING+=("$f")
         fi
     done
 
     SKIPPED=$(( ${#ALL_LOCAL[@]} - ${#PENDING[@]} ))
     if [ "$SKIPPED" -gt 0 ]; then
-        echo "  Skipping ${SKIPPED} files already in GCS"
+        echo "  Skipping ${SKIPPED} files already uploaded"
     fi
 
     if [ ${#PENDING[@]} -eq 0 ]; then
         echo "  All files already uploaded for ${ds}, nothing to do"
+        unset UPLOADED
         continue
     fi
 
@@ -119,7 +126,23 @@ for ds in "${selected[@]}"; do
         echo "Uploading ${#UPLOAD[@]} files from ${SRC_DIR} to ${GCS_PATH} ..."
     fi
 
-    gsutil -m cp "${UPLOAD[@]}" "${GCS_PATH}"
+    # Upload one file at a time and record progress
+    TOTAL=${#UPLOAD[@]}
+    COUNT=0
+    for f in "${UPLOAD[@]}"; do
+        fname=$(basename "$f")
+        gsutil cp "$f" "${GCS_PATH}" && {
+            printf '%s\t%s\t%s\n' "$fname" "${GCS_PATH}${fname}" "OK" >> "$PROGRESS_FILE"
+            COUNT=$((COUNT + 1))
+            echo "  [${COUNT}/${TOTAL}] ${fname} uploaded"
+        } || {
+            printf '%s\t%s\t%s\n' "$fname" "${GCS_PATH}${fname}" "FAILED" >> "$PROGRESS_FILE"
+            COUNT=$((COUNT + 1))
+            echo "  [${COUNT}/${TOTAL}] ${fname} FAILED"
+        }
+    done
+
+    unset UPLOADED
 done
 
 echo "Done."
