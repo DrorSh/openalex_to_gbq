@@ -41,7 +41,9 @@ function rateStr() {
 function printProgress(extra) {
 	const parts = [
 		`[${elapsed()}]`,
-		`Files: ${progress.completedFiles}/${progress.totalFiles}` + (progress.skippedFiles ? ` (${progress.skippedFiles} skipped)` : ""),
+		`Files: ${progress.completedFiles}/${progress.totalFiles}` +
+			` (${progress.activeFiles.size} active` +
+			(progress.skippedFiles ? `, ${progress.skippedFiles} skipped)` : ")"),
 		`Records: ${progress.totalRecords.toLocaleString()}`,
 		rateStr(),
 	];
@@ -315,13 +317,17 @@ async function fixFile(inPath, outPath, file) {
 	// Skip if output file already exists
 	if (fs.existsSync(outPath + "/" + file)) {
 		progress.skippedFiles++;
+		progress.completedFiles++;
 		return;
 	}
 
 	progress.activeFiles.add(label);
 
+	const finalPath = outPath + "/" + file;
+	const tmpPath = finalPath + ".tmp";
+
 	const inputStream = fs.createReadStream(inPath + "/" + file);
-	const outputStream = fs.createWriteStream(outPath + "/" + file);
+	const outputStream = fs.createWriteStream(tmpPath);
 	const gunzip = zlib.createGunzip();
 	const gzip = zlib.createGzip();
 
@@ -362,23 +368,29 @@ async function fixFile(inPath, outPath, file) {
 			}
 
 			cb(null, JSON.stringify(data) + "\n");
-		},
-		flush(cb) {
-			progress.completedFiles++;
-			progress.activeFiles.delete(label);
-			console.log(chalk.green(`  ✓ ${label}: ${count.toLocaleString()} records`));
-			cb();
 		}
 	});
 
-	await pipelineAsync(
-		inputStream,
-		gunzip,
-		split2(),
-		fixTransform,
-		gzip,
-		outputStream
-	);
+	try {
+		await pipelineAsync(
+			inputStream,
+			gunzip,
+			split2(),
+			fixTransform,
+			gzip,
+			outputStream
+		);
+		// Atomic rename: only create final file after successful completion
+		fs.renameSync(tmpPath, finalPath);
+	} catch (err) {
+		// Clean up incomplete temp file on error
+		try { fs.unlinkSync(tmpPath); } catch {}
+		throw err;
+	}
+
+	progress.completedFiles++;
+	progress.activeFiles.delete(label);
+	console.log(chalk.green(`  ✓ ${label}: ${count.toLocaleString()} records`));
 }
 
 
@@ -452,15 +464,23 @@ console.log("");
 
 const tasks = fileTasks.map(({ inPath, outPath, file }) => () => fixFile(inPath, outPath, file));
 
+// Print progress every 5 seconds so large files don't look stuck
+const progressInterval = setInterval(() => {
+    const active = [...progress.activeFiles].slice(0, 3).join(", ");
+    printProgress(active ? `active: ${active}` : "");
+}, 5000);
+
 runWithConcurrency(tasks, CONCURRENCY)
     .then(() => {
+        clearInterval(progressInterval);
         console.log("");
         console.log(chalk.green.bold("═".repeat(60)));
         console.log(chalk.green.bold(`  All done in ${elapsed()}`));
-        console.log(chalk.green.bold(`  ${progress.totalRecords.toLocaleString()} records across ${progress.completedFiles} files (${progress.skippedFiles} skipped)`));
+        console.log(chalk.green.bold(`  ${progress.totalRecords.toLocaleString()} records across ${progress.completedFiles} files (${progress.skippedFiles} skipped) | ${rateStr()}`));
         console.log(chalk.green.bold("═".repeat(60)));
     })
     .catch(err => {
+        clearInterval(progressInterval);
         console.error("Fatal error:", err);
         process.exit(1);
     });
