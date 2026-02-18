@@ -113,7 +113,16 @@ pixi run bq works concepts
 pixi run bq all              # load everything
 ```
 
-9. Cleanup
+9. Make tables public
+
+Grants `allUsers` read access (`roles/bigquery.dataViewer`) to BigQuery tables.
+
+```
+pixi run public works
+pixi run public all              # all tables
+```
+
+10. Cleanup
 
 Remove local data files for the current version:
 
