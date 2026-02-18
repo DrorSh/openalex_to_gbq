@@ -1,12 +1,11 @@
 import chalk from "chalk";
-import fileSystem from "fs";
 import fs from "fs";
 import path from "path";
-import ndjson from "ndjson";
+import split2 from "split2";
 import zlib from "zlib";
 import JSON from "JSON";
 import util from "util";
-import stream from "stream";
+import stream, { Transform } from "stream";
 import os from "os";
 
 const pipelineAsync = util.promisify(stream.pipeline);
@@ -17,8 +16,6 @@ const CONCURRENCY = parseInt(process.env.CONCURRENCY, 10) || os.cpus().length;
 // Progress tracking
 const progress = {
 	startTime: Date.now(),
-	totalFolders: 0,
-	completedFolders: 0,
 	totalFiles: 0,
 	completedFiles: 0,
 	skippedFiles: 0,
@@ -44,7 +41,6 @@ function rateStr() {
 function printProgress(extra) {
 	const parts = [
 		`[${elapsed()}]`,
-		`Folders: ${progress.completedFolders}/${progress.totalFolders}`,
 		`Files: ${progress.completedFiles}/${progress.totalFiles}` + (progress.skippedFiles ? ` (${progress.skippedFiles} skipped)` : ""),
 		`Records: ${progress.totalRecords.toLocaleString()}`,
 		rateStr(),
@@ -217,15 +213,32 @@ function removeUnwantedProperties(data) {
 
 
 function fix_authorships(authorships) {
+	if (!authorships) return [];
+	return authorships.map(author => {
+		if (!author.institutions || author.institutions.length === 0) {
+			author.institutions = [empty_institution];
+		}
+		author.institutions.forEach(inst => {
+			if (inst.lineage == null) inst.lineage = [];
+		});
+		if (author.affiliations) {
+			author.affiliations.forEach(aff => {
+				if (aff.institution_ids == null) aff.institution_ids = [];
+			});
+		}
+		if (author.countries == null) author.countries = [];
+		if (author.raw_affiliation_strings == null) author.raw_affiliation_strings = [];
+		return author;
+	});
+}
 
-	var authorships = authorships.map(author => {
-		if (author.institutions.length === 0) {
-			author.institutions.push(empty_institution)
-		 }
-		return(author)
-	})
-
-	return(authorships)
+function fix_top_level_arrays(data) {
+	if (data.corresponding_author_ids == null) data.corresponding_author_ids = [];
+	if (data.corresponding_institution_ids == null) data.corresponding_institution_ids = [];
+	if (data.indexed_in == null) data.indexed_in = [];
+	if (data.referenced_works == null) data.referenced_works = [];
+	if (data.related_works == null) data.related_works = [];
+	return data;
 }
 
 function fix_host_venue(host_venue) {
@@ -307,82 +320,67 @@ async function fixFile(inPath, outPath, file) {
 
 	progress.activeFiles.add(label);
 
-    var inputStream = fileSystem.createReadStream( inPath+"/"+file );
-    var outputStream = fileSystem.createWriteStream( outPath+"/"+file );
+	const inputStream = fs.createReadStream(inPath + "/" + file);
+	const outputStream = fs.createWriteStream(outPath + "/" + file);
+	const gunzip = zlib.createGunzip();
+	const gzip = zlib.createGzip();
 
-    var transformOutStream = ndjson.stringify();
+	let count = 0;
 
-    var gunzip = zlib.createGunzip();
-    var gzip = zlib.createGzip();
+	const fixTransform = new Transform({
+		writableObjectMode: true,
+		readableObjectMode: false,
+		transform(line, encoding, cb) {
+			const str = typeof line === "string" ? line : line.toString();
+			if (!str) return cb();
 
-    let count = 0;
+			let data;
+			try {
+				data = JSON.parse(str);
+			} catch (e) {
+				return cb();
+			}
 
-    var transformInStream = ndjson.parse()
+			count++;
+			progress.totalRecords++;
 
-			.on(
-				"data",
+			if (count % 100000 === 0) {
+				printProgress(`${label}: ${count.toLocaleString()}`);
+			}
 
-				function handleRecord( data ) {
+			// Fix schema issues (nulls, types)
+			data.apc_list = fix_apc_list(data.apc_list);
+			data.locations = fix_locations(data.locations);
+			data.best_oa_location = fix_best_oa_location(data.best_oa_location);
+			data.primary_location = fix_primary_location(data.primary_location);
+			data.authorships = fix_authorships(data.authorships);
+			fix_top_level_arrays(data);
 
-					count++;
-					progress.totalRecords++;
+			// Convert inverted index to JSON string (can't be a BQ nested type)
+			if (data.abstract_inverted_index) {
+				data.abstract_inverted_index = JSON.stringify(data.abstract_inverted_index);
+			}
 
-					if (count % 100000 === 0) {
-						printProgress(`${label}: ${count.toLocaleString()}`);
-					}
+			cb(null, JSON.stringify(data) + "\n");
+		},
+		flush(cb) {
+			progress.completedFiles++;
+			progress.activeFiles.delete(label);
+			console.log(chalk.green(`  ✓ ${label}: ${count.toLocaleString()} records`));
+			cb();
+		}
+	});
 
-					// Fix schema issues (nulls, types)
-					data.apc_list = fix_apc_list(data.apc_list);
-					data.locations = fix_locations(data.locations);
-					data.best_oa_location = fix_best_oa_location(data.best_oa_location);
-					data.primary_location = fix_primary_location(data.primary_location);
-
-					// Convert inverted index to JSON string (can't be a BQ nested type)
-					if (data.abstract_inverted_index) {
-						data.abstract_inverted_index = JSON.stringify(data.abstract_inverted_index);
-					}
-
-				}
-			)
-			.on(
-				"end",
-				function handleEnd() {
-					progress.completedFiles++;
-					progress.activeFiles.delete(label);
-					console.log( chalk.green( `  ✓ ${label}: ${count.toLocaleString()} records` ) );
-				}
-			)
-		;
-
-    await pipelineAsync(
-        inputStream,
-        gunzip,
-        transformInStream,
-        transformOutStream,
-        gzip,
-        outputStream
-    );
+	await pipelineAsync(
+		inputStream,
+		gunzip,
+		split2(),
+		fixTransform,
+		gzip,
+		outputStream
+	);
 }
 
-
-async function processFolder(inFolderPath, outFolderPath) {
-    if (!fs.existsSync(outFolderPath)) {
-        fs.mkdirSync(outFolderPath, { recursive: true });
-    }
-
-    const folder = path.basename(inFolderPath);
-    const files = fs.readdirSync(inFolderPath);
-    progress.totalFiles += files.length;
-
-    console.log(chalk.yellow(`▶ ${folder} (${files.length} files)`));
-
-    for (let i = 0; i < files.length; i++) {
-        await fixFile(inFolderPath, outFolderPath, files[i]);
-    }
-
-    progress.completedFolders++;
-    printProgress(chalk.green(`★ ${folder} complete`));
-}
 
 // Run tasks with limited concurrency
 async function runWithConcurrency(tasks, limit) {
@@ -431,15 +429,28 @@ if (batchRange) {
     folders = folders.slice(start_idx, end_idx);
 }
 
-progress.totalFolders = folders.length;
-console.log(`Processing ${folders.length} folders with concurrency ${CONCURRENCY} ...`);
-console.log("");
-
-const tasks = folders.map(folder => () => {
+// Flatten all files into one task queue for file-level concurrency
+const fileTasks = [];
+for (const folder of folders) {
     const inFolderPath = path.join(BASE_PATH, folder);
     const outFolderPath = path.join(CONVERTED_PATH, folder);
-    return processFolder(inFolderPath, outFolderPath);
-});
+
+    // Create output directory upfront
+    if (!fs.existsSync(outFolderPath)) {
+        fs.mkdirSync(outFolderPath, { recursive: true });
+    }
+
+    const files = fs.readdirSync(inFolderPath);
+    for (const file of files) {
+        fileTasks.push({ inPath: inFolderPath, outPath: outFolderPath, file });
+    }
+}
+
+progress.totalFiles = fileTasks.length;
+console.log(`Processing ${fileTasks.length} files across ${folders.length} folders with concurrency ${CONCURRENCY} ...`);
+console.log("");
+
+const tasks = fileTasks.map(({ inPath, outPath, file }) => () => fixFile(inPath, outPath, file));
 
 runWithConcurrency(tasks, CONCURRENCY)
     .then(() => {

@@ -9,22 +9,34 @@ fi
 source .env
 
 DATASETS=(authors awards concepts domains fields funders institutions publishers sources subfields topics works)
+MAX_BAD_RECORDS=0
 
 usage() {
-    echo "Usage: bash bq.sh <dataset> [dataset ...]"
+    echo "Usage: bash bq.sh [-b N] <dataset> [dataset ...]"
     echo ""
     echo "Creates BigQuery tables from GCS data."
     echo "Tables are named <dataset>_<VERSION> (e.g. works_${VERSION})."
+    echo ""
+    echo "Options:"
+    echo "  -b N    Max bad records to skip per file (default: 0)"
     echo ""
     echo "Available datasets: ${DATASETS[*]}"
     echo "Use 'all' to load everything."
     echo ""
     echo "Examples:"
     echo "  bash bq.sh works"
-    echo "  bash bq.sh works concepts"
+    echo "  bash bq.sh -b 100 works"
     echo "  bash bq.sh all"
     exit 1
 }
+
+while getopts ":b:" opt; do
+    case $opt in
+        b) MAX_BAD_RECORDS="$OPTARG" ;;
+        *) usage ;;
+    esac
+done
+shift $((OPTIND - 1))
 
 if [ $# -eq 0 ]; then
     usage
@@ -91,6 +103,7 @@ for ds in "${selected[@]}"; do
         --source_format=NEWLINE_DELIMITED_JSON \
         --project_id="${PROJECT_ID}" \
         --replace=true \
+        --max_bad_records="${MAX_BAD_RECORDS}" \
         "${BQ_DATASET}.${TABLE}" \
         "${GCS_PATH}*.gz" \
         "${SCHEMA}"

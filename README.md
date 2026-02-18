@@ -76,7 +76,7 @@ Use `-m N` to limit the number of files sampled per dataset (useful for quick sc
 ```
 pixi run schema authors
 pixi run schema all              # generate all schemas
-pixi run schema -- -m 5 works    # sample at most 5 files
+pixi run schema -m 5 works       # sample at most 5 files
 ```
 
 6. Validate record counts
@@ -99,7 +99,7 @@ Use `-m N` to upload in batches of N files per dataset.
 
 ```
 pixi run upload works
-pixi run upload -- -m 5 works    # upload at most 5 new files
+pixi run upload -m 5 works       # upload at most 5 new files
 pixi run upload all              # upload everything
 ```
 

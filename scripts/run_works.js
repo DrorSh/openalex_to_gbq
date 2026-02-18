@@ -178,15 +178,32 @@ function removeUnwantedProperties(data) {
 
 
 function fix_authorships(authorships) {
+	if (!authorships) return [];
+	return authorships.map(author => {
+		if (!author.institutions || author.institutions.length === 0) {
+			author.institutions = [empty_institution];
+		}
+		author.institutions.forEach(inst => {
+			if (inst.lineage == null) inst.lineage = [];
+		});
+		if (author.affiliations) {
+			author.affiliations.forEach(aff => {
+				if (aff.institution_ids == null) aff.institution_ids = [];
+			});
+		}
+		if (author.countries == null) author.countries = [];
+		if (author.raw_affiliation_strings == null) author.raw_affiliation_strings = [];
+		return author;
+	});
+}
 
-	var authorships = authorships.map(author => {	
-		if (author.institutions.length === 0) { 
-			author.institutions.push(empty_institution)
-		 }
-		return(author)
-	})
-
-	return(authorships)
+function fix_top_level_arrays(data) {
+	if (data.corresponding_author_ids == null) data.corresponding_author_ids = [];
+	if (data.corresponding_institution_ids == null) data.corresponding_institution_ids = [];
+	if (data.indexed_in == null) data.indexed_in = [];
+	if (data.referenced_works == null) data.referenced_works = [];
+	if (data.related_works == null) data.related_works = [];
+	return data;
 }
 
 function fix_host_venue(host_venue) {
@@ -294,6 +311,8 @@ async function fixFile(inPath, outPath, file) {
 					data.locations = fix_locations(data.locations);
 					data.best_oa_location = fix_best_oa_location(data.best_oa_location);
 					data.primary_location = fix_primary_location(data.primary_location);
+					data.authorships = fix_authorships(data.authorships);
+					fix_top_level_arrays(data);
 
 					// Convert inverted index to JSON string (can't be a BQ nested type)
 					if (data.abstract_inverted_index) {
