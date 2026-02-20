@@ -1,14 +1,55 @@
 import chalk from "chalk";
-import fileSystem from "fs";
 import fs from "fs";
 import path from "path";
-import ndjson from "ndjson";
+import split2 from "split2";
 import zlib from "zlib";
 import JSON from "JSON";
 import util from "util";
-import stream from "stream";
+import stream, { Transform } from "stream";
+import os from "os";
 
+const pipelineAsync = util.promisify(stream.pipeline);
 
+// Concurrency: default to number of CPUs, override with CONCURRENCY env var
+const CONCURRENCY = parseInt(process.env.CONCURRENCY, 10) || Math.max(1, Math.floor(os.cpus().length / 2));
+
+// Progress tracking
+const progress = {
+	startTime: Date.now(),
+	totalFiles: 0,
+	completedFiles: 0,
+	skippedFiles: 0,
+	totalRecords: 0,
+	activeFiles: new Set(),
+};
+
+function elapsed() {
+	const sec = (Date.now() - progress.startTime) / 1000;
+	if (sec < 60) return `${sec.toFixed(0)}s`;
+	if (sec < 3600) return `${Math.floor(sec / 60)}m ${Math.floor(sec % 60)}s`;
+	return `${Math.floor(sec / 3600)}h ${Math.floor((sec % 3600) / 60)}m`;
+}
+
+function rateStr() {
+	const sec = (Date.now() - progress.startTime) / 1000;
+	if (sec < 1) return "—";
+	const rate = progress.totalRecords / sec;
+	if (rate >= 1000) return `${(rate / 1000).toFixed(1)}k rec/s`;
+	return `${rate.toFixed(0)} rec/s`;
+}
+
+function printProgress(extra) {
+	const parts = [
+		`[${elapsed()}]`,
+		`Files: ${progress.completedFiles}/${progress.totalFiles}` +
+			` (${progress.activeFiles.size} active` +
+			(progress.skippedFiles ? `, ${progress.skippedFiles} skipped)` : ")"),
+		`Records: ${progress.totalRecords.toLocaleString()}`,
+		rateStr(),
+	];
+	if (extra) parts.push(extra);
+	console.log(chalk.cyan(parts.join(" | ")));
+}
 
 // fix stuff
 // ----------
@@ -57,13 +98,13 @@ const empty_concept = {
 const empty_host_venue = {
 	license: null,
 	issn: null,
-	issn_l: null, 
-	publisher: null, 
-	is_oa: null, 
-	id: null, 
-	display_name: null, 
-	type: null, 
-	version: null, 
+	issn_l: null,
+	publisher: null,
+	is_oa: null,
+	id: null,
+	display_name: null,
+	type: null,
+	version: null,
 	url: null
 }
 
@@ -109,14 +150,10 @@ function fix_locations(locations) {
 		if (!locations) {
 			locations = [empty_location];
 		} else {
-			// If locations key exists, fix any null issn fields
 			locations.forEach(location => {
 				if (location.source && location.source.issn === null) {
 					location.source.issn = [];
 				}
-				//if (location.source && location.source.issn_l === null) {
-				//	location.source.issn_l = [];
-				//}
 			});
 		}
 
@@ -151,11 +188,11 @@ function fix_apc_list(apc_list) {
 	if (!Array.isArray(apc_list)) {
 		apc_list = apc_list ? [apc_list] : [];
 	}
-	
+
 	if (apc_list.length === 0) {
 		apc_list.push(empty_apc_list);
 	}
-	
+
 	return apc_list;
 }
 
@@ -189,6 +226,7 @@ function fix_authorships(authorships) {
 		if (author.affiliations) {
 			author.affiliations.forEach(aff => {
 				if (aff.institution_ids == null) aff.institution_ids = [];
+				else aff.institution_ids = aff.institution_ids.filter(v => v != null);
 			});
 		}
 		if (author.countries == null) author.countries = [];
@@ -217,7 +255,7 @@ function fix_counts_by_year(counts_by_year) {
 	if (!counts_by_year || counts_by_year.length === 0) {
 		counts_by_year = [empty_counts_by_year];
 	}
-	
+
 	return(counts_by_year)
 }
 
@@ -248,25 +286,21 @@ function fix_concepts(concepts) {
 }
 
 function reconstructAbstract(abstractData) {
-    // Check if abstract_inverted_index is not provided or if it's empty
-    if (!abstractData || 
+    if (!abstractData ||
         Object.keys(abstractData.InvertedIndex).length === 0) {
         return null;
     }
 
     const { IndexLength, InvertedIndex } = abstractData;
-    
-    // Create an empty array with the length of IndexLength
+
     const wordsArray = new Array(IndexLength).fill(null);
-    
-    // For each word in the InvertedIndex, insert the word at its respective indices
+
     for (const word in InvertedIndex) {
         for (const position of InvertedIndex[word]) {
             wordsArray[position] = word;
         }
     }
-    
-    // Join the array to get the reconstructed abstract
+
     return wordsArray.join(' ');
 }
 
@@ -279,90 +313,112 @@ function fixRecord(data) {
 }
 
 async function fixFile(inPath, outPath, file) {
+	const label = `${path.basename(inPath)}/${file}`;
+
 	// Skip if output file already exists
 	if (fs.existsSync(outPath + "/" + file)) {
+		progress.skippedFiles++;
+		progress.completedFiles++;
 		return;
 	}
 
-	console.log(inPath + "/" + file);
+	progress.activeFiles.add(label);
 
-	var pipeline = util.promisify(stream.pipeline);
-    var inputStream = fileSystem.createReadStream( inPath+"/"+file );
-    var outputStream = fileSystem.createWriteStream( outPath+"/"+file );
+	const finalPath = outPath + "/" + file;
+	const tmpPath = finalPath + ".tmp";
 
-    var transformOutStream = ndjson.stringify();
-    
-    var gunzip = zlib.createGunzip();
-    var gzip = zlib.createGzip();
+	const inputStream = fs.createReadStream(inPath + "/" + file);
+	const outputStream = fs.createWriteStream(tmpPath);
+	const gunzip = zlib.createGunzip();
+	const gzip = zlib.createGzip();
 
-    let count = 0;
+	let count = 0;
 
-    var transformInStream = ndjson.parse()
-			
-			.on(
-				"data",
+	const fixTransform = new Transform({
+		writableObjectMode: true,
+		readableObjectMode: false,
+		transform(line, encoding, cb) {
+			const str = typeof line === "string" ? line : line.toString();
+			if (!str) return cb();
 
-				function handleRecord( data ) {
+			let data;
+			try {
+				data = JSON.parse(str);
+			} catch (e) {
+				return cb();
+			}
 
-                    ++count % 100000 || console.log(count);
+			count++;
+			progress.totalRecords++;
 
-					// Fix schema issues (nulls, types)
-					data.apc_list = fix_apc_list(data.apc_list);
-					data.locations = fix_locations(data.locations);
-					data.best_oa_location = fix_best_oa_location(data.best_oa_location);
-					data.primary_location = fix_primary_location(data.primary_location);
-					data.authorships = fix_authorships(data.authorships);
-					fix_top_level_arrays(data);
+			if (count % 100000 === 0) {
+				printProgress(`${label}: ${count.toLocaleString()}`);
+			}
 
-					// Convert inverted index to JSON string (can't be a BQ nested type)
-					if (data.abstract_inverted_index) {
-						data.abstract_inverted_index = JSON.stringify(data.abstract_inverted_index);
-					}
+			// Fix schema issues (nulls, types)
+			data.apc_list = fix_apc_list(data.apc_list);
+			data.locations = fix_locations(data.locations);
+			data.best_oa_location = fix_best_oa_location(data.best_oa_location);
+			data.primary_location = fix_primary_location(data.primary_location);
+			data.authorships = fix_authorships(data.authorships);
+			fix_top_level_arrays(data);
 
-				}
-			)
-			.on(
-				"end",
-				function handleEnd() {
+			// Convert inverted index to JSON string (can't be a BQ nested type)
+			if (data.abstract_inverted_index) {
+				data.abstract_inverted_index = JSON.stringify(data.abstract_inverted_index);
+			}
 
-					console.log( chalk.green( "ndjson parsing complete!" ) );
-		
+			cb(null, JSON.stringify(data) + "\n");
+		}
+	});
 
-				}
-			)
-		;
+	try {
+		await pipelineAsync(
+			inputStream,
+			gunzip,
+			split2(),
+			fixTransform,
+			gzip,
+			outputStream
+		);
+		// Atomic rename: only create final file after successful completion
+		fs.renameSync(tmpPath, finalPath);
+	} catch (err) {
+		// Clean up incomplete temp file on error
+		try { fs.unlinkSync(tmpPath); } catch {}
+		throw err;
+	}
 
-    await pipeline(
-        inputStream,
-        gunzip,
-        transformInStream,
-        transformOutStream,
-        gzip,
-        outputStream
-    );
+	progress.completedFiles++;
+	progress.activeFiles.delete(label);
+	console.log(chalk.green(`  ✓ ${label}: ${count.toLocaleString()} records`));
 }
 
 
-async function start(inPath, outPath, files) {
-    for(let i=0; i< files.length; i++){
-        await fixFile(inPath, outPath, files[i]);
-      }
+// Run tasks with limited concurrency
+async function runWithConcurrency(tasks, limit) {
+    const results = [];
+    const executing = new Set();
+
+    for (const task of tasks) {
+        const p = task().then(r => {
+            executing.delete(p);
+            return r;
+        });
+        executing.add(p);
+        results.push(p);
+
+        if (executing.size >= limit) {
+            await Promise.race(executing);
+        }
+    }
+
+    return Promise.all(results);
 }
 
 
 // RUN
 // -----
-
-
-//const EXTENSION = '.gz';
-//const FOLDER = 'works/updated_date=2023-07-07/'; //folder for conversion
-//const inPath = './data/raw/' + FOLDER;
-//const outPath = './data/converted/' + FOLDER;
-//var files = fileSystem.readdirSync(inPath);
-//start(inPath, outPath, files);
-
-//const fs = require('fs');
-//const path = require('path');
 
 const VERSION = process.env.DATA_VERSION;
 if (!VERSION) { console.error("Error: DATA_VERSION env var not set"); process.exit(1); }
@@ -386,20 +442,46 @@ if (batchRange) {
     folders = folders.slice(start_idx, end_idx);
 }
 
-console.log(`Processing ${folders.length} folders ...`);
-
-folders.forEach(folder => {
+// Flatten all files into one task queue for file-level concurrency
+const fileTasks = [];
+for (const folder of folders) {
     const inFolderPath = path.join(BASE_PATH, folder);
     const outFolderPath = path.join(CONVERTED_PATH, folder);
 
-    // Create corresponding folder in 'converted' if it doesn't exist
+    // Create output directory upfront
     if (!fs.existsSync(outFolderPath)) {
         fs.mkdirSync(outFolderPath, { recursive: true });
     }
 
-    // Get all files in the current folder
     const files = fs.readdirSync(inFolderPath);
+    for (const file of files) {
+        fileTasks.push({ inPath: inFolderPath, outPath: outFolderPath, file });
+    }
+}
 
-    // Call your start function
-    start(inFolderPath, outFolderPath, files);
-});
+progress.totalFiles = fileTasks.length;
+console.log(`Processing ${fileTasks.length} files across ${folders.length} folders with concurrency ${CONCURRENCY} ...`);
+console.log("");
+
+const tasks = fileTasks.map(({ inPath, outPath, file }) => () => fixFile(inPath, outPath, file));
+
+// Print progress every 5 seconds so large files don't look stuck
+const progressInterval = setInterval(() => {
+    const active = [...progress.activeFiles].slice(0, 3).join(", ");
+    printProgress(active ? `active: ${active}` : "");
+}, 5000);
+
+runWithConcurrency(tasks, CONCURRENCY)
+    .then(() => {
+        clearInterval(progressInterval);
+        console.log("");
+        console.log(chalk.green.bold("═".repeat(60)));
+        console.log(chalk.green.bold(`  All done in ${elapsed()}`));
+        console.log(chalk.green.bold(`  ${progress.totalRecords.toLocaleString()} records across ${progress.completedFiles} files (${progress.skippedFiles} skipped) | ${rateStr()}`));
+        console.log(chalk.green.bold("═".repeat(60)));
+    })
+    .catch(err => {
+        clearInterval(progressInterval);
+        console.error("Fatal error:", err);
+        process.exit(1);
+    });

@@ -55,15 +55,14 @@ pixi run download all        # download everything
 
 Only `works`, `concepts`, `institutions`, and `sources` require conversion (fixing null arrays, stringifying inverted index). All other datasets can be uploaded as-is. Already-converted files are skipped on re-run, so it's safe to interrupt and resume.
 
-For large datasets like `works` (~600GB), you can process in batches by appending a range. Folders are sorted alphabetically; use `count` to see the total. Use `--parallel` to process multiple folders concurrently.
+For large datasets like `works` (~600GB), you can process in batches by appending a range. Folders are sorted alphabetically; use `count` to see the total. Files are processed concurrently by default (number of CPUs). Use `--parallel=N` to set the number of workers.
 
 ```
 pixi run convert works count       # show number of folders
 pixi run convert works 1-50        # convert folders 1-50
 pixi run convert works 51-100      # convert folders 51-100
-pixi run convert --parallel works   # parallel, all folders
 pixi run convert --parallel=4 works 1-50  # 4 workers, folders 1-50
-pixi run convert works             # sequential, all folders
+pixi run convert works             # all folders
 pixi run convert all               # convert works, concepts, institutions, sources
 ```
 

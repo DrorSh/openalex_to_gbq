@@ -107,10 +107,8 @@ for ds in "${selected[@]}"; do
     else
         echo "Converting $ds ..."
     fi
-    if [ -n "$PARALLEL" ] && [ -f "scripts/run_${ds}_parallel.js" ]; then
-        DATA_VERSION="$VERSION" BATCH_RANGE="$BATCH_RANGE" CONCURRENCY="${CONCURRENCY}" node "scripts/run_${ds}_parallel.js"
-    elif [ -f "scripts/run_${ds}.js" ]; then
-        DATA_VERSION="$VERSION" BATCH_RANGE="$BATCH_RANGE" node "scripts/run_${ds}.js"
+    if [ -f "scripts/run_${ds}.js" ]; then
+        DATA_VERSION="$VERSION" BATCH_RANGE="$BATCH_RANGE" CONCURRENCY="${CONCURRENCY}" node "scripts/run_${ds}.js"
     elif [ -f "scripts/run_${ds}.py" ]; then
         DATA_VERSION="$VERSION" BATCH_RANGE="$BATCH_RANGE" python3 "scripts/run_${ds}.py"
     else
