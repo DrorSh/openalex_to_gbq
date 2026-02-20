@@ -98,44 +98,15 @@ for ds in "${selected[@]}"; do
         continue
     fi
 
-    ERROR_DIR="data/bq_errors/${VERSION}"
-    mkdir -p "$ERROR_DIR"
-    ERROR_FILE="${ERROR_DIR}/${ds}.txt"
-
     echo "Loading ${BQ_DATASET}.${TABLE} from ${GCS_PATH} (schema: ${SCHEMA}) ..."
-    JOB_OUTPUT=$(bq load \
+    bq load \
         --source_format=NEWLINE_DELIMITED_JSON \
         --project_id="${PROJECT_ID}" \
         --replace=true \
         --max_bad_records="${MAX_BAD_RECORDS}" \
         "${BQ_DATASET}.${TABLE}" \
         "${GCS_PATH}*.gz" \
-        "${SCHEMA}" 2>&1) || true
-
-    echo "$JOB_OUTPUT"
-
-    # Extract job ID and save errors if any
-    JOB_ID=$(echo "$JOB_OUTPUT" | grep -oP 'job_\S+' | head -1 || true)
-    if [ -n "$JOB_ID" ]; then
-        ERRORS=$(bq show --format=json -j "$JOB_ID" 2>/dev/null \
-            | python3 -c "
-import sys, json
-job = json.load(sys.stdin)
-status = job.get('status', {})
-errors = status.get('errors', [])
-if errors:
-    for e in errors:
-        print(f\"- {e.get('location','')}: {e.get('message','')}\")
-" 2>/dev/null || true)
-        if [ -n "$ERRORS" ]; then
-            echo "$ERRORS" > "$ERROR_FILE"
-            NUM_ERRORS=$(echo "$ERRORS" | wc -l)
-            echo "  ${NUM_ERRORS} errors saved to ${ERROR_FILE}"
-        else
-            rm -f "$ERROR_FILE"
-            echo "  No errors."
-        fi
-    fi
+        "${SCHEMA}"
 
     echo "${ds} done."
 done
