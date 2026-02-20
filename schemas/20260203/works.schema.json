@@ -679,6 +679,11 @@
         "mode": "NULLABLE",
         "name": "pmid",
         "type": "STRING"
+      },
+      {
+        "mode": "NULLABLE",
+        "name": "openalex_curation",
+        "type": "STRING"
       }
     ],
     "mode": "NULLABLE",
