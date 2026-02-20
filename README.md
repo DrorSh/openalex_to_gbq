@@ -94,7 +94,7 @@ pixi run validate all            # validate everything
 
 Uploads files to GCS, tracking progress in `data/upload/<VERSION>/<dataset>.tsv`. Already-uploaded files (status OK) are skipped on re-run; failed uploads are retried automatically.
 
-Use `-m N` to upload in batches of N files per dataset.
+Use `-m N` to limit to N new files per dataset.
 
 ```
 pixi run upload works

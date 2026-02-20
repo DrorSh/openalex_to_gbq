@@ -9,15 +9,15 @@ fi
 source .env
 
 DATASETS=(authors awards concepts domains fields funders institutions publishers sources subfields topics works)
-MAX_DIRS=0  # 0 means no limit
+MAX_FILES=0  # 0 means no limit
 
 usage() {
-    echo "Usage: bash upload.sh [-m max_dirs] <dataset> [dataset ...]"
+    echo "Usage: bash upload.sh [-m max_files] <dataset> [dataset ...]"
     echo ""
     echo "Uploads data to GCS at gs://<GCS_BUCKET>/<VERSION>/<dataset>/."
     echo ""
     echo "Options:"
-    echo "  -m N    Upload at most N subdirectories per dataset (default: all)"
+    echo "  -m N    Upload at most N new files per dataset (default: all)"
     echo ""
     echo "Available datasets: ${DATASETS[*]}"
     echo "Use 'all' to upload everything."
@@ -31,7 +31,7 @@ usage() {
 
 while getopts ":m:" opt; do
     case $opt in
-        m) MAX_DIRS="$OPTARG" ;;
+        m) MAX_FILES="$OPTARG" ;;
         *) usage ;;
     esac
 done
@@ -97,72 +97,56 @@ for ds in "${selected[@]}"; do
         printf 'file\tdestination\tstatus\n' > "$PROGRESS_FILE"
     fi
 
-    # Find pending subdirectories (those with any un-uploaded files)
-    mapfile -t ALL_LOCAL < <(find "$SRC_DIR" -type f ! -name 'manifest' | sort)
-    declare -A DONE_SUBDIRS=()
-    declare -A PENDING_SUBDIRS=()
-    declare -a SUBDIR_ORDER=()
+    # Find pending files (not yet uploaded)
+    mapfile -t ALL_LOCAL < <(find "$SRC_DIR" -type f ! -name 'manifest' ! -name '*.tmp' | sort)
+    PENDING_FILES=()
     SKIPPED=0
 
     for f in "${ALL_LOCAL[@]}"; do
         rel_path="${f#$SRC_DIR/}"
-        subdir=$(dirname "$rel_path")
         if [ -n "${UPLOADED[$rel_path]+x}" ]; then
             SKIPPED=$((SKIPPED + 1))
-            DONE_SUBDIRS["$subdir"]=1
             continue
         fi
-        if [ -z "${PENDING_SUBDIRS[$subdir]+x}" ]; then
-            SUBDIR_ORDER+=("$subdir")
-            PENDING_SUBDIRS["$subdir"]=1
-        fi
+        PENDING_FILES+=("$f")
     done
 
     if [ "$SKIPPED" -gt 0 ]; then
-        echo "  Skipping ${#DONE_SUBDIRS[@]} subdirectories already uploaded (${SKIPPED} files)"
+        echo "  Skipping ${SKIPPED} files already uploaded"
     fi
 
-    if [ ${#SUBDIR_ORDER[@]} -eq 0 ]; then
+    if [ ${#PENDING_FILES[@]} -eq 0 ]; then
         echo "  All files already uploaded for ${ds}, nothing to do"
-        unset UPLOADED DONE_SUBDIRS PENDING_SUBDIRS SUBDIR_ORDER
+        unset PENDING_FILES
         continue
     fi
 
-    TOTAL_DIRS=${#SUBDIR_ORDER[@]}
-    if [ "$MAX_DIRS" -gt 0 ] && [ "$TOTAL_DIRS" -gt "$MAX_DIRS" ]; then
-        SUBDIR_ORDER=("${SUBDIR_ORDER[@]:0:$MAX_DIRS}")
-        echo "Uploading ${#SUBDIR_ORDER[@]} of ${TOTAL_DIRS} pending subdirectories from ${SRC_DIR} to ${GCS_PATH} (limited by -m ${MAX_DIRS}) ..."
+    TOTAL_PENDING=${#PENDING_FILES[@]}
+    if [ "$MAX_FILES" -gt 0 ] && [ "$TOTAL_PENDING" -gt "$MAX_FILES" ]; then
+        PENDING_FILES=("${PENDING_FILES[@]:0:$MAX_FILES}")
+        echo "Uploading ${#PENDING_FILES[@]} of ${TOTAL_PENDING} pending files from ${SRC_DIR} to ${GCS_PATH} (limited by -m ${MAX_FILES}) ..."
     else
-        echo "Uploading ${TOTAL_DIRS} subdirectories from ${SRC_DIR} to ${GCS_PATH} ..."
+        echo "Uploading ${TOTAL_PENDING} files from ${SRC_DIR} to ${GCS_PATH} ..."
     fi
 
-    # Build list of source subdirectory paths for a single gsutil -m cp -r call
-    SRC_PATHS=()
-    for subdir in "${SUBDIR_ORDER[@]}"; do
-        SRC_PATHS+=("${SRC_DIR}/${subdir}")
+    # Upload each pending file individually to its correct GCS path
+    UPLOAD_OK=0
+    UPLOAD_FAIL=0
+    for f in "${PENDING_FILES[@]}"; do
+        rel_path="${f#$SRC_DIR/}"
+        dest="${GCS_PATH}${rel_path}"
+        if gsutil cp "$f" "$dest" 2>/dev/null; then
+            printf '%s\t%s\t%s\n' "$rel_path" "$dest" "OK" >> "$PROGRESS_FILE"
+            UPLOAD_OK=$((UPLOAD_OK + 1))
+        else
+            printf '%s\t%s\t%s\n' "$rel_path" "$dest" "FAIL" >> "$PROGRESS_FILE"
+            UPLOAD_FAIL=$((UPLOAD_FAIL + 1))
+        fi
+        echo "  [${UPLOAD_OK}/${#PENDING_FILES[@]}] ${rel_path}"
     done
 
-    gsutil -m cp -r "${SRC_PATHS[@]}" "${GCS_PATH}" && {
-        # Record all files from uploaded subdirectories
-        for f in "${ALL_LOCAL[@]}"; do
-            rel_path="${f#$SRC_DIR/}"
-            subdir=$(dirname "$rel_path")
-            if [ -n "${PENDING_SUBDIRS[$subdir]+x}" ]; then
-                # Only record subdirs we just uploaded
-                found=false
-                for s in "${SUBDIR_ORDER[@]}"; do
-                    if [ "$s" = "$subdir" ]; then found=true; break; fi
-                done
-                if [ "$found" = true ]; then
-                    printf '%s\t%s\t%s\n' "$rel_path" "${GCS_PATH}${rel_path}" "OK" >> "$PROGRESS_FILE"
-                fi
-            fi
-        done
-        echo "  ${#SUBDIR_ORDER[@]} subdirectories uploaded successfully"
-    } || {
-        echo "  Upload failed"
-    }
-    unset DONE_SUBDIRS PENDING_SUBDIRS SUBDIR_ORDER
+    echo "  Uploaded ${UPLOAD_OK} files (${UPLOAD_FAIL} failed)"
+    unset PENDING_FILES
 
     unset UPLOADED
 done
